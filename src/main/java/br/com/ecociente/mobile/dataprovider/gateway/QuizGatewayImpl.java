@@ -24,11 +24,10 @@ public class QuizGatewayImpl implements QuizGateway {
     private final QuizEntityMapper mapper;
 
     public QuizGatewayImpl(
-        QuizRepository quizRepository,
-        PerguntaQuizRepository perguntaRepository,
-        AlternativaQuizRepository alternativaRepository,
-        QuizEntityMapper mapper
-    ) {
+            QuizRepository quizRepository,
+            PerguntaQuizRepository perguntaRepository,
+            AlternativaQuizRepository alternativaRepository,
+            QuizEntityMapper mapper) {
         this.quizRepository = quizRepository;
         this.perguntaRepository = perguntaRepository;
         this.alternativaRepository = alternativaRepository;
@@ -38,24 +37,28 @@ public class QuizGatewayImpl implements QuizGateway {
     @Override
     public Optional<Quiz> buscarQuizDisponivelPorAulaId(Integer aulaId) {
         return quizRepository.buscarDisponivelPorAulaId(aulaId)
-            .map(this::montarQuiz);
+                .map(this::montarQuiz);
     }
 
     private Quiz montarQuiz(QuizEntity entity) {
-        var perguntas =
-            perguntaRepository.findByQuizIdOrderByOrdemAscIdAsc(
-                entity.getId()
-            );
+        var perguntas = perguntaRepository.findByQuizIdOrderByOrdemAscIdAsc(
+                entity.getId());
 
         List<Integer> perguntaIds = perguntas.stream()
-            .map(PerguntaQuizEntity::getId)
-            .toList();
+                .map(PerguntaQuizEntity::getId)
+                .toList();
 
         List<AlternativaQuizEntity> alternativas = perguntaIds.isEmpty()
-            ? List.of()
-            : alternativaRepository
-                .findByPerguntaIdInOrderByIdAsc(perguntaIds);
+                ? List.of()
+                : alternativaRepository
+                        .findByPerguntaIdInOrderByIdAsc(perguntaIds);
 
         return mapper.toDomain(entity, perguntas, alternativas);
+    }
+
+    @Override
+    public Optional<Quiz> buscarQuizDisponivelPorId(Integer quizId) {
+        return quizRepository.buscarDisponivelPorId(quizId)
+                .map(this::montarQuiz);
     }
 }
