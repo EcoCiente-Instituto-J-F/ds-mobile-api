@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 
 import br.com.ecociente.mobile.core.domain.ContextoCondominialQuiz;
@@ -153,6 +154,32 @@ class CriarPostagemServiceTest {
         () -> service.executar(10, 5, 2, URL, "abc", captura()));
 
     assertEquals(Tipo.CONFLITO, erro.getTipo());
+  }
+
+  @Test
+  void deveTratarRestricaoDeCapturaDoBancoComoDadoInvalido() {
+    vinculoOk();
+    when(gateway.inserir(any(), any(), any(), any(), any(), any(), any()))
+        .thenThrow(new DataIntegrityViolationException(
+            "violates check constraint ck_postagens_capturada_em"));
+
+    var erro = assertThrows(
+        PostagemException.class,
+        () -> service.executar(10, 5, 2, URL, "abc", captura()));
+
+    assertEquals(Tipo.DADOS_INVALIDOS, erro.getTipo());
+    assertEquals("CAPTURA_INVALIDA", erro.getCodigo());
+  }
+
+  @Test
+  void naoDeveEsconderOutraViolacaoDeIntegridade() {
+    vinculoOk();
+    when(gateway.inserir(any(), any(), any(), any(), any(), any(), any()))
+        .thenThrow(new DataIntegrityViolationException("violates foreign key"));
+
+    assertThrows(
+        DataIntegrityViolationException.class,
+        () -> service.executar(10, 5, 2, URL, "abc", captura()));
   }
 
   @Test

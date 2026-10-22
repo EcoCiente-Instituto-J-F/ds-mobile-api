@@ -8,8 +8,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
+import br.com.ecociente.mobile.core.domain.CategoriaResiduo;
 import br.com.ecociente.mobile.core.domain.ContextoCondominialQuiz;
 import br.com.ecociente.mobile.core.domain.Postagem;
+import br.com.ecociente.mobile.core.exception.PostagemException;
 import br.com.ecociente.mobile.core.gateway.PostagemGateway;
 
 @Component
@@ -67,22 +69,39 @@ public class PostagemGatewayImpl implements PostagemGateway {
       Integer condominioId) {
     return jdbc.query("""
         SELECT m.condominio_id,
-               m.torre_id
+               m.torre_id,
+               t.condominio_id AS condominio_torre_id
         FROM tb_moradores m
         JOIN tb_condominios c
           ON c.id_condominio = m.condominio_id
         JOIN tb_rel_usuarios_condominios r
           ON r.usuario_id = m.usuario_id
          AND r.condominio_id = m.condominio_id
+        LEFT JOIN tb_torres t
+          ON t.id_torre = m.torre_id
         WHERE m.usuario_id = ?
           AND m.condominio_id = ?
           AND c.ativo = TRUE
           AND r.aprovado = TRUE
           AND r.data_saida IS NULL
         """,
-        (rs, rowNum) -> new ContextoCondominialQuiz(
-            rs.getInt("condominio_id"),
-            rs.getObject("torre_id", Integer.class)),
+        (rs, rowNum) -> {
+          Integer torreId = rs.getObject("torre_id", Integer.class);
+          Integer condominioTorreId = rs.getObject(
+              "condominio_torre_id", Integer.class);
+
+          if (torreId != null
+              && !condominioId.equals(condominioTorreId)) {
+            throw new PostagemException(
+                PostagemException.Tipo.CONFLITO,
+                "TORRE_CONDOMINIO_INCONSISTENTE",
+                "A torre do morador não pertence ao condomínio");
+          }
+
+          return new ContextoCondominialQuiz(
+              rs.getInt("condominio_id"),
+              torreId);
+        },
         usuarioId,
         condominioId).stream().findFirst();
   }
@@ -94,6 +113,24 @@ public class PostagemGatewayImpl implements PostagemGateway {
             + " WHERE id_categoria = ?)",
         Boolean.class,
         categoriaId));
+  }
+
+  @Override
+  public List<CategoriaResiduo> listarCategorias() {
+    return jdbc.query("""
+        SELECT id_categoria,
+               nome_categoria,
+               descricao_material,
+               pontos_base
+        FROM tb_lkp_categorias_residuos
+        WHERE permite_reciclagem = TRUE
+        ORDER BY nome_categoria, id_categoria
+        """,
+        (rs, rowNum) -> new CategoriaResiduo(
+            rs.getInt("id_categoria"),
+            rs.getString("nome_categoria"),
+            rs.getString("descricao_material"),
+            rs.getInt("pontos_base")));
   }
 
   @Override

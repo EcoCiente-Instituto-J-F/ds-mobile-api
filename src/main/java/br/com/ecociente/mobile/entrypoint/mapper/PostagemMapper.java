@@ -2,8 +2,10 @@ package br.com.ecociente.mobile.entrypoint.mapper;
 
 import org.springframework.stereotype.Component;
 
+import br.com.ecociente.mobile.core.domain.CategoriaResiduo;
 import br.com.ecociente.mobile.core.domain.PaginaPostagens;
 import br.com.ecociente.mobile.core.domain.Postagem;
+import br.com.ecociente.mobile.entrypoint.dto.response.CategoriaResiduoResponseDto;
 import br.com.ecociente.mobile.entrypoint.dto.response.PostagemResponseDto;
 import br.com.ecociente.mobile.entrypoint.dto.response.PostagensResponseDto;
 
@@ -26,6 +28,14 @@ public class PostagemMapper {
         postagem.saldoConfianca(),
         postagem.dataLimiteAnalise(),
         postagem.resolvidoEm());
+  }
+
+  public CategoriaResiduoResponseDto toResponse(CategoriaResiduo categoria) {
+    return new CategoriaResiduoResponseDto(
+        categoria.id(),
+        categoria.nome(),
+        categoria.descricao(),
+        categoria.pontosBase());
   }
 
   public PostagensResponseDto toResponse(PaginaPostagens pagina) {

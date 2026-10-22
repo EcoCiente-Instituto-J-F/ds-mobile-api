@@ -4,6 +4,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import br.com.ecociente.mobile.core.domain.CategoriaResiduo;
 import br.com.ecociente.mobile.core.domain.ContextoCondominialQuiz;
 import br.com.ecociente.mobile.core.domain.Postagem;
 
@@ -15,6 +16,9 @@ public interface PostagemGateway {
       Integer condominioId);
 
   boolean categoriaExiste(Integer categoriaId);
+
+  /** Categorias que o morador pode escolher ao registrar um descarte. */
+  List<CategoriaResiduo> listarCategorias();
 
   boolean hashFotoJaUsado(String hashFoto);
 

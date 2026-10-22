@@ -45,10 +45,12 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import br.com.ecociente.mobile.config.security.JwtService;
 import br.com.ecociente.mobile.config.security.SecurityConfig;
+import br.com.ecociente.mobile.core.service.ConsultarCategoriasResiduoService;
 import br.com.ecociente.mobile.core.service.ConsultarPostagensCondominioService;
 import br.com.ecociente.mobile.core.service.ConsultarPostagensUsuarioService;
 import br.com.ecociente.mobile.core.service.CriarPostagemService;
 import br.com.ecociente.mobile.dataprovider.gateway.PostagemGatewayImpl;
+import br.com.ecociente.mobile.entrypoint.controller.CategoriaResiduoController;
 import br.com.ecociente.mobile.entrypoint.controller.PostagemController;
 import br.com.ecociente.mobile.entrypoint.exception.PostagemExceptionHandler;
 import br.com.ecociente.mobile.entrypoint.mapper.PostagemMapper;
@@ -196,6 +198,33 @@ class PostagemIntegrationTest {
         .content(corpo("https://img.teste/f.jpg", "hash-f", 99, 1, haCincoMinutos())))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.codigo").value("CATEGORIA_NAO_ENCONTRADA"));
+  }
+
+  @Test
+  void deveListarAsCategoriasDeResiduo() throws Exception {
+    mvc.perform(get("/api/categorias-residuos")
+        .header("Authorization", bearer(20)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(2))
+        .andExpect(jsonPath("$[0].nome").value("Papel"))
+        .andExpect(jsonPath("$[0].id").value(2))
+        .andExpect(jsonPath("$[0].pontosBase").value(10))
+        .andExpect(jsonPath("$[1].nome").value("Plástico"));
+
+    mvc.perform(get("/api/categorias-residuos"))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void deveRejeitarMoradorComTorreDeOutroCondominio() throws Exception {
+    jdbc.update("UPDATE tb_moradores SET torre_id = 2 WHERE usuario_id = 20");
+
+    mvc.perform(post("/api/postagens")
+        .header("Authorization", bearer(20))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(corpo("https://img.teste/t.jpg", "hash-t", 1, 1, haCincoMinutos())))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.codigo").value("TORRE_CONDOMINIO_INCONSISTENTE"));
   }
 
   @Test
@@ -357,9 +386,11 @@ class PostagemIntegrationTest {
       CriarPostagemService.class,
       ConsultarPostagensCondominioService.class,
       ConsultarPostagensUsuarioService.class,
+      ConsultarCategoriasResiduoService.class,
       PostagemGatewayImpl.class,
       PostagemMapper.class,
       PostagemController.class,
+      CategoriaResiduoController.class,
       PostagemExceptionHandler.class
   })
   static class Config {
