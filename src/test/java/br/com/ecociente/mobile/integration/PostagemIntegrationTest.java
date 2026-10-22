@@ -19,6 +19,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -135,7 +137,7 @@ class PostagemIntegrationTest {
   }
 
   @Test
-  void moradorSemTorrePodePostarComTorreNula() throws Exception {
+  void devePermitirMoradorSemTorreComTorreNula() throws Exception {
     mvc.perform(post("/api/postagens")
         .header("Authorization", bearer(30))
         .contentType(MediaType.APPLICATION_JSON)
@@ -145,7 +147,7 @@ class PostagemIntegrationTest {
   }
 
   @Test
-  void deveRejeitarFotoRepetidaComConflito() throws Exception {
+  void deveRejeitarFotoRepetida() throws Exception {
     String json = corpo("https://img.teste/nova.jpg", "hash-nova", 1, 1, haCincoMinutos());
 
     mvc.perform(post("/api/postagens")
@@ -237,6 +239,21 @@ class PostagemIntegrationTest {
         .andExpect(jsonPath("$.codigo").value("CAPTURA_INVALIDA"));
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = {
+      "{}",
+      "{nao e json",
+      "{\"urlFoto\":\"\"}",
+      "[]"
+  })
+  void deveRejeitarCorpoInvalido(String corpo) throws Exception {
+    mvc.perform(post("/api/postagens")
+        .header("Authorization", bearer(20))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(corpo))
+        .andExpect(status().isBadRequest());
+  }
+
   @Test
   void deveRejeitarCorpoSemCamposObrigatorios() throws Exception {
     mvc.perform(post("/api/postagens")
@@ -259,7 +276,7 @@ class PostagemIntegrationTest {
   }
 
   @Test
-  void feedListaSoOCondominioDoUsuarioDoMaisNovoParaOMaisAntigo() throws Exception {
+  void deveListarFeedSoDoCondominioDoMaisNovoAoMaisAntigo() throws Exception {
     mvc.perform(post("/api/postagens")
         .header("Authorization", bearer(20))
         .contentType(MediaType.APPLICATION_JSON)
@@ -281,7 +298,7 @@ class PostagemIntegrationTest {
   }
 
   @Test
-  void feedNaoMostraOutroCondominio() throws Exception {
+  void naoDeveListarFeedDeOutroCondominio() throws Exception {
     mvc.perform(get("/api/postagens")
         .header("Authorization", bearer(20))
         .param("condominioId", "2"))
@@ -289,7 +306,7 @@ class PostagemIntegrationTest {
   }
 
   @Test
-  void feedPaginaOsResultados() throws Exception {
+  void devePaginarOFeed() throws Exception {
     mvc.perform(post("/api/postagens")
         .header("Authorization", bearer(20))
         .contentType(MediaType.APPLICATION_JSON)
@@ -309,7 +326,7 @@ class PostagemIntegrationTest {
   }
 
   @Test
-  void minhasTrazSoAsDoProprioUsuario() throws Exception {
+  void deveListarSoAsPostagensDoProprioUsuario() throws Exception {
     mvc.perform(get("/api/postagens/minhas")
         .header("Authorization", bearer(30)))
         .andExpect(status().isOk())
@@ -325,11 +342,20 @@ class PostagemIntegrationTest {
         .andExpect(jsonPath("$.postagens").isEmpty());
   }
 
-  @Test
-  void deveRejeitarTamanhoDePaginaInvalido() throws Exception {
+  @ParameterizedTest
+  @ValueSource(strings = { "0", "-1", "101", "abc" })
+  void deveRejeitarTamanhoInvalido(String tamanho) throws Exception {
     mvc.perform(get("/api/postagens/minhas")
         .header("Authorization", bearer(20))
-        .param("size", "101"))
+        .param("size", tamanho))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void deveRejeitarPaginaNegativa() throws Exception {
+    mvc.perform(get("/api/postagens/minhas")
+        .header("Authorization", bearer(20))
+        .param("page", "-1"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.codigo").value("PAGINACAO_INVALIDA"));
   }

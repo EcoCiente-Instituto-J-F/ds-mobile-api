@@ -10,6 +10,8 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.dao.DuplicateKeyException;
 
 import br.com.ecociente.mobile.core.domain.ContextoCondominialQuiz;
@@ -64,20 +66,44 @@ class ConsultarPostagensCondominioServiceTest {
     verify(gateway, never()).listarDoCondominio(anyInt(), anyLong(), anyInt());
   }
 
+  @ParameterizedTest
+  @CsvSource({
+      "-1,10",
+      "0,0",
+      "0,-1",
+      "0,101"
+  })
+  void deveRejeitarPaginacaoInvalida(
+      int pagina,
+      int tamanho) {
+    var erro = assertThrows(
+        PostagemException.class,
+        () -> service.executar(10, 5, pagina, tamanho));
+
+    assertEquals(Tipo.DADOS_INVALIDOS, erro.getTipo());
+    assertEquals("PAGINACAO_INVALIDA", erro.getCodigo());
+    verifyNoInteractions(gateway);
+  }
+
   @Test
-  void deveRejeitarPaginacaoEIdsInvalidos() {
-    assertEquals(
-        "PAGINACAO_INVALIDA",
-        assertThrows(PostagemException.class, () -> service.executar(10, 5, -1, 10)).getCodigo());
-    assertEquals(
-        "PAGINACAO_INVALIDA",
-        assertThrows(PostagemException.class, () -> service.executar(10, 5, 0, 101)).getCodigo());
-    assertEquals(
-        "CONDOMINIO_ID_INVALIDO",
-        assertThrows(PostagemException.class, () -> service.executar(10, 0, 0, 10)).getCodigo());
-    assertEquals(
-        "USUARIO_INVALIDO",
-        assertThrows(PostagemException.class, () -> service.executar(null, 5, 0, 10)).getCodigo());
+  void deveRejeitarCondominioInvalido() {
+    var erro = assertThrows(
+        PostagemException.class,
+        () -> service.executar(10, 0, 0, 10));
+
+    assertEquals(Tipo.DADOS_INVALIDOS, erro.getTipo());
+    assertEquals("CONDOMINIO_ID_INVALIDO", erro.getCodigo());
+    verifyNoInteractions(gateway);
+  }
+
+  @Test
+  void deveRejeitarUsuarioAusente() {
+    var erro = assertThrows(
+        PostagemException.class,
+        () -> service.executar(null, 5, 0, 10));
+
+    assertEquals(Tipo.NAO_PERMITIDO, erro.getTipo());
+    assertEquals("USUARIO_INVALIDO", erro.getCodigo());
     verifyNoInteractions(gateway);
   }
 }

@@ -10,6 +10,9 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -90,29 +93,62 @@ class CriarPostagemServiceTest {
   }
 
   @Test
-  void naoDeveCriarComUrlQueNaoSejaHttp() {
+  void deveRejeitarUsuarioAusente() {
     var erro = assertThrows(
         PostagemException.class,
-        () -> service.executar(10, 5, 2, "ftp://x/foto.jpg", "abc", captura()));
+        () -> service.executar(null, 5, 2, URL, "abc", captura()));
+
+    assertEquals(Tipo.NAO_PERMITIDO, erro.getTipo());
+    assertEquals("USUARIO_INVALIDO", erro.getCodigo());
+    verifyNoInteractions(gateway);
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+      "0,2,CONDOMINIO_ID_INVALIDO",
+      "-1,2,CONDOMINIO_ID_INVALIDO",
+      "5,0,CATEGORIA_ID_INVALIDA",
+      "5,-1,CATEGORIA_ID_INVALIDA"
+  })
+  void deveRejeitarIdsInvalidos(
+      int condominioId,
+      int categoriaId,
+      String codigo) {
+    var erro = assertThrows(
+        PostagemException.class,
+        () -> service.executar(10, condominioId, categoriaId, URL, "abc", captura()));
+
+    assertEquals(Tipo.DADOS_INVALIDOS, erro.getTipo());
+    assertEquals(codigo, erro.getCodigo());
+    verifyNoInteractions(gateway);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {
+      "",
+      "   ",
+      "foto.jpg",
+      "ftp://x/foto.jpg"
+  })
+  void deveRejeitarUrlDeFotoInvalida(String url) {
+    var erro = assertThrows(
+        PostagemException.class,
+        () -> service.executar(10, 5, 2, url, "abc", captura()));
 
     assertEquals(Tipo.DADOS_INVALIDOS, erro.getTipo());
     assertEquals("URL_FOTO_INVALIDA", erro.getCodigo());
+    verifyNoInteractions(gateway);
   }
 
-  @Test
-  void deveRejeitarUsuarioEIdsInvalidos() {
-    assertEquals(
-        "USUARIO_INVALIDO",
-        assertThrows(PostagemException.class,
-            () -> service.executar(null, 5, 2, URL, "abc", captura())).getCodigo());
-    assertEquals(
-        "CONDOMINIO_ID_INVALIDO",
-        assertThrows(PostagemException.class,
-            () -> service.executar(10, 0, 2, URL, "abc", captura())).getCodigo());
-    assertEquals(
-        "CATEGORIA_ID_INVALIDA",
-        assertThrows(PostagemException.class,
-            () -> service.executar(10, 5, null, URL, "abc", captura())).getCodigo());
+  @ParameterizedTest
+  @ValueSource(strings = { "", "   " })
+  void deveRejeitarHashDeFotoInvalido(String hash) {
+    var erro = assertThrows(
+        PostagemException.class,
+        () -> service.executar(10, 5, 2, URL, hash, captura()));
+
+    assertEquals(Tipo.DADOS_INVALIDOS, erro.getTipo());
+    assertEquals("HASH_FOTO_INVALIDO", erro.getCodigo());
     verifyNoInteractions(gateway);
   }
 
