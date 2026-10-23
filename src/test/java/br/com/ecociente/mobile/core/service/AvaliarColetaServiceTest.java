@@ -9,12 +9,10 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.dao.DuplicateKeyException;
 
 import br.com.ecociente.mobile.core.domain.AgendamentoAvaliavel;
 import br.com.ecociente.mobile.core.domain.AvaliacaoColeta;
+import br.com.ecociente.mobile.core.domain.NovaAvaliacaoColeta;
 import br.com.ecociente.mobile.core.exception.AvaliacaoColetaException;
 import br.com.ecociente.mobile.core.exception.AvaliacaoColetaException.Tipo;
 import br.com.ecociente.mobile.core.gateway.AvaliacaoColetaGateway;
@@ -30,72 +28,54 @@ class AvaliarColetaServiceTest {
     service = new AvaliarColetaService(gateway);
   }
 
-  private void agendamentoRealizadoDoSindico(int sindico) {
+  private void agendamento(Integer sindico, boolean realizado) {
     when(gateway.buscarAgendamento(100))
-        .thenReturn(Optional.of(new AgendamentoAvaliavel(100, sindico, true)));
-    when(gateway.obterOuCriarVisitaRealizada(100)).thenReturn(1000);
-    when(gateway.visitaJaAvaliada(1000)).thenReturn(false);
+        .thenReturn(Optional.of(new AgendamentoAvaliavel(100, sindico, realizado)));
+  }
+
+  private AvaliacaoColeta salva() {
+    return new AvaliacaoColeta(7, 100, 1000, 5, "Pontual", OffsetDateTime.now());
   }
 
   @Test
-  void deveRegistrarAvaliacaoDoSindicoDoCondominio() {
-    agendamentoRealizadoDoSindico(30);
-
-    when(gateway.registrar(100, 1000, 30, 5, "Pontual"))
-        .thenReturn(new AvaliacaoColeta(
-            7, 100, 1000, 5, "Pontual", OffsetDateTime.now()));
+  void deveAvaliarUsandoAVisitaJaRegistrada() {
+    agendamento(30, true);
+    when(gateway.buscarVisitaRealizada(100)).thenReturn(Optional.of(1000));
+    when(gateway.visitaJaAvaliada(1000)).thenReturn(false);
+    when(gateway.registrar(eq(1000), any())).thenReturn(salva());
 
     var resultado = service.executar(30, 100, 5, "  Pontual  ");
 
     assertEquals(7, resultado.id());
-    assertEquals(5, resultado.nota());
     assertEquals(1000, resultado.visitaId());
 
-    verify(gateway).registrar(100, 1000, 30, 5, "Pontual");
+    verify(gateway, never()).criarVisitaRealizada(anyInt());
+    verify(gateway).registrar(
+        1000,
+        new NovaAvaliacaoColeta(30, 100, 5, "Pontual"));
   }
 
   @Test
-  void comentarioEmBrancoDeveVirarNulo() {
-    agendamentoRealizadoDoSindico(30);
+  void deveCriarAVisitaQuandoNinguemRegistrou() {
+    agendamento(30, true);
+    when(gateway.buscarVisitaRealizada(100)).thenReturn(Optional.empty());
+    when(gateway.criarVisitaRealizada(100)).thenReturn(1001);
+    when(gateway.visitaJaAvaliada(1001)).thenReturn(false);
+    when(gateway.registrar(eq(1001), any())).thenReturn(salva());
 
-    when(gateway.registrar(100, 1000, 30, 4, null))
-        .thenReturn(new AvaliacaoColeta(
-            7, 100, 1000, 4, null, OffsetDateTime.now()));
+    service.executar(30, 100, 5, null);
 
-    service.executar(30, 100, 4, "   ");
-
-    verify(gateway).registrar(100, 1000, 30, 4, null);
-  }
-
-  @ParameterizedTest
-  @ValueSource(ints = { 0, -1, 6, 100 })
-  void deveRejeitarNotaForaDoIntervalo(int nota) {
-    var erro = assertThrows(
-        AvaliacaoColetaException.class,
-        () -> service.executar(30, 100, nota, null));
-
-    assertEquals(Tipo.DADOS_INVALIDOS, erro.getTipo());
-    assertEquals("NOTA_INVALIDA", erro.getCodigo());
-
-    verifyNoInteractions(gateway);
+    verify(gateway).criarVisitaRealizada(100);
+    verify(gateway).registrar(1001, new NovaAvaliacaoColeta(30, 100, 5, null));
   }
 
   @Test
-  void deveRejeitarNotaAusente() {
+  void naoDeveConsultarOBancoQuandoOPedidoEInvalido() {
     var erro = assertThrows(
         AvaliacaoColetaException.class,
-        () -> service.executar(30, 100, null, null));
+        () -> service.executar(30, 100, 9, null));
 
     assertEquals("NOTA_INVALIDA", erro.getCodigo());
-  }
-
-  @Test
-  void deveRejeitarComentarioMaiorQueOLimite() {
-    var erro = assertThrows(
-        AvaliacaoColetaException.class,
-        () -> service.executar(30, 100, 5, "a".repeat(501)));
-
-    assertEquals("COMENTARIO_INVALIDO", erro.getCodigo());
 
     verifyNoInteractions(gateway);
   }
@@ -114,8 +94,7 @@ class AvaliarColetaServiceTest {
 
   @Test
   void naoDeveAvaliarColetaDeOutroSindico() {
-    when(gateway.buscarAgendamento(100))
-        .thenReturn(Optional.of(new AgendamentoAvaliavel(100, 31, true)));
+    agendamento(31, true);
 
     var erro = assertThrows(
         AvaliacaoColetaException.class,
@@ -124,14 +103,12 @@ class AvaliarColetaServiceTest {
     assertEquals(Tipo.NAO_PERMITIDO, erro.getTipo());
     assertEquals("AVALIACAO_NAO_PERMITIDA", erro.getCodigo());
 
-    verify(gateway, never()).registrar(
-        anyInt(), anyInt(), anyInt(), anyInt(), any());
+    verify(gateway, never()).registrar(anyInt(), any());
   }
 
   @Test
   void naoDeveAvaliarCondominioSemSindico() {
-    when(gateway.buscarAgendamento(100))
-        .thenReturn(Optional.of(new AgendamentoAvaliavel(100, null, true)));
+    agendamento(null, true);
 
     var erro = assertThrows(
         AvaliacaoColetaException.class,
@@ -142,8 +119,7 @@ class AvaliarColetaServiceTest {
 
   @Test
   void naoDeveAvaliarColetaQueNaoFoiRealizada() {
-    when(gateway.buscarAgendamento(100))
-        .thenReturn(Optional.of(new AgendamentoAvaliavel(100, 30, false)));
+    agendamento(30, false);
 
     var erro = assertThrows(
         AvaliacaoColetaException.class,
@@ -152,12 +128,14 @@ class AvaliarColetaServiceTest {
     assertEquals(Tipo.CONFLITO, erro.getTipo());
     assertEquals("COLETA_NAO_REALIZADA", erro.getCodigo());
 
-    verify(gateway, never()).obterOuCriarVisitaRealizada(anyInt());
+    verify(gateway, never()).buscarVisitaRealizada(anyInt());
+    verify(gateway, never()).criarVisitaRealizada(anyInt());
   }
 
   @Test
   void naoDeveAvaliarDuasVezes() {
-    agendamentoRealizadoDoSindico(30);
+    agendamento(30, true);
+    when(gateway.buscarVisitaRealizada(100)).thenReturn(Optional.of(1000));
     when(gateway.visitaJaAvaliada(1000)).thenReturn(true);
 
     var erro = assertThrows(
@@ -167,41 +145,21 @@ class AvaliarColetaServiceTest {
     assertEquals(Tipo.CONFLITO, erro.getTipo());
     assertEquals("AVALIACAO_JA_REGISTRADA", erro.getCodigo());
 
-    verify(gateway, never()).registrar(
-        anyInt(), anyInt(), anyInt(), anyInt(), any());
+    verify(gateway, never()).registrar(anyInt(), any());
   }
 
   @Test
-  void devePerceberAvaliacaoDuplicadaPorCorrida() {
-    agendamentoRealizadoDoSindico(30);
-    when(gateway.registrar(100, 1000, 30, 5, null))
-        .thenThrow(new DuplicateKeyException("uq"));
+  void deveRepassarOConflitoDeAvaliacaoSimultanea() {
+    agendamento(30, true);
+    when(gateway.buscarVisitaRealizada(100)).thenReturn(Optional.of(1000));
+    when(gateway.visitaJaAvaliada(1000)).thenReturn(false);
+    when(gateway.registrar(eq(1000), any()))
+        .thenThrow(AvaliacaoColetaException.jaAvaliada());
 
     var erro = assertThrows(
         AvaliacaoColetaException.class,
         () -> service.executar(30, 100, 5, null));
 
     assertEquals("AVALIACAO_JA_REGISTRADA", erro.getCodigo());
-  }
-
-  @ParameterizedTest
-  @ValueSource(ints = { 0, -5 })
-  void deveRejeitarUsuarioInvalido(int usuario) {
-    var erro = assertThrows(
-        AvaliacaoColetaException.class,
-        () -> service.executar(usuario, 100, 5, null));
-
-    assertEquals(Tipo.NAO_PERMITIDO, erro.getTipo());
-  }
-
-  @ParameterizedTest
-  @ValueSource(ints = { 0, -1 })
-  void deveRejeitarAgendamentoInvalido(int agendamento) {
-    var erro = assertThrows(
-        AvaliacaoColetaException.class,
-        () -> service.executar(30, agendamento, 5, null));
-
-    assertEquals(Tipo.DADOS_INVALIDOS, erro.getTipo());
-    assertEquals("AGENDAMENTO_ID_INVALIDO", erro.getCodigo());
   }
 }

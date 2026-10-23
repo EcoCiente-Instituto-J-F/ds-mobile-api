@@ -21,6 +21,14 @@ public class AvaliacaoColetaException extends RuntimeException {
     this.codigo = codigo;
   }
 
+  /** Usada pelo serviço e pelo gateway, que traduz a violação da unicidade do banco. */
+  public static AvaliacaoColetaException jaAvaliada() {
+    return new AvaliacaoColetaException(
+        Tipo.CONFLITO,
+        "AVALIACAO_JA_REGISTRADA",
+        "Esta coleta já foi avaliada");
+  }
+
   public Tipo getTipo() {
     return tipo;
   }

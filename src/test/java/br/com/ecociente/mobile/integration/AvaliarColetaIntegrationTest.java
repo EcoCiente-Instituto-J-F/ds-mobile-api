@@ -45,6 +45,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import br.com.ecociente.mobile.config.security.JwtService;
 import br.com.ecociente.mobile.config.security.SecurityConfig;
+import br.com.ecociente.mobile.core.domain.NovaAvaliacaoColeta;
+import br.com.ecociente.mobile.core.exception.AvaliacaoColetaException;
+import br.com.ecociente.mobile.core.gateway.AvaliacaoColetaGateway;
 import br.com.ecociente.mobile.core.service.AvaliarColetaService;
 import br.com.ecociente.mobile.dataprovider.gateway.AvaliacaoColetaGatewayImpl;
 import br.com.ecociente.mobile.entrypoint.controller.AvaliacaoColetaController;
@@ -76,6 +79,9 @@ class AvaliarColetaIntegrationTest {
 
   @Autowired
   JdbcTemplate jdbc;
+
+  @Autowired
+  AvaliacaoColetaGateway gateway;
 
   private MockMvc mvc;
 
@@ -285,6 +291,18 @@ class AvaliarColetaIntegrationTest {
         .content("{\"nota\":5}"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.codigo").value("PARAMETRO_INVALIDO"));
+  }
+
+  @Test
+  void gatewayDeveTraduzirAUnicidadeDoBancoEmAvaliacaoJaRegistrada() {
+    // a visita 1001 já tem avaliação: a restrição única do banco precisa virar erro de domínio
+    var erro = assertThrows(
+        AvaliacaoColetaException.class,
+        () -> gateway.registrar(
+            1001,
+            NovaAvaliacaoColeta.de(30, 101, 5, null)));
+
+    assertEquals("AVALIACAO_JA_REGISTRADA", erro.getCodigo());
   }
 
   @Test

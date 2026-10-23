@@ -9,4 +9,9 @@ public record AgendamentoAvaliavel(
     Integer sindicoUsuarioId,
     boolean realizado
 ) {
+
+  public boolean eDoSindico(Integer usuarioId) {
+    return sindicoUsuarioId != null
+        && sindicoUsuarioId.equals(usuarioId);
+  }
 }

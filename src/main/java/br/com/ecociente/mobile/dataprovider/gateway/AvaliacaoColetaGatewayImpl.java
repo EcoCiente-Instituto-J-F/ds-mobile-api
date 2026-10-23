@@ -1,12 +1,16 @@
 package br.com.ecociente.mobile.dataprovider.gateway;
 
+import java.time.OffsetDateTime;
 import java.util.Optional;
 
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import br.com.ecociente.mobile.core.domain.AgendamentoAvaliavel;
 import br.com.ecociente.mobile.core.domain.AvaliacaoColeta;
+import br.com.ecociente.mobile.core.domain.NovaAvaliacaoColeta;
+import br.com.ecociente.mobile.core.exception.AvaliacaoColetaException;
 import br.com.ecociente.mobile.core.gateway.AvaliacaoColetaGateway;
 
 @Component
@@ -43,7 +47,7 @@ public class AvaliacaoColetaGatewayImpl
   }
 
   @Override
-  public Integer obterOuCriarVisitaRealizada(
+  public Optional<Integer> buscarVisitaRealizada(
       Integer agendamentoId) {
     return jdbc.query("""
         SELECT id_visita_coleta
@@ -54,20 +58,25 @@ public class AvaliacaoColetaGatewayImpl
         LIMIT 1
         """,
         (rs, rowNum) -> rs.getInt("id_visita_coleta"),
-        agendamentoId).stream().findFirst().orElseGet(() ->
-            jdbc.queryForObject("""
-                INSERT INTO tb_visitas_coletas (
-                    agendamento_coleta_id, data_visita,
-                    foi_realizada, houve_confirmacao, confirmado_em)
-                SELECT id_agendamento_coleta,
-                       COALESCE(data_fim, data_inicio),
-                       TRUE, TRUE, now()
-                FROM tb_agendamentos_coletas
-                WHERE id_agendamento_coleta = ?
-                RETURNING id_visita_coleta
-                """,
-                Integer.class,
-                agendamentoId));
+        agendamentoId).stream().findFirst();
+  }
+
+  @Override
+  public Integer criarVisitaRealizada(
+      Integer agendamentoId) {
+    return jdbc.queryForObject("""
+        INSERT INTO tb_visitas_coletas (
+            agendamento_coleta_id, data_visita,
+            foi_realizada, houve_confirmacao, confirmado_em)
+        SELECT id_agendamento_coleta,
+               COALESCE(data_fim, data_inicio),
+               TRUE, TRUE, now()
+        FROM tb_agendamentos_coletas
+        WHERE id_agendamento_coleta = ?
+        RETURNING id_visita_coleta
+        """,
+        Integer.class,
+        agendamentoId);
   }
 
   @Override
@@ -85,27 +94,29 @@ public class AvaliacaoColetaGatewayImpl
 
   @Override
   public AvaliacaoColeta registrar(
-      Integer agendamentoId,
       Integer visitaId,
-      Integer usuarioId,
-      int nota,
-      String comentario) {
-    return jdbc.queryForObject("""
-        INSERT INTO tb_avaliacoes_visitas_coletas (
-            visita_coleta_id, usuario_avaliador_id, nota, comentario)
-        VALUES (?, ?, ?, ?)
-        RETURNING id_avaliacao, nota, comentario, avaliado_em
-        """,
-        (rs, rowNum) -> new AvaliacaoColeta(
-            rs.getInt("id_avaliacao"),
-            agendamentoId,
-            visitaId,
-            rs.getInt("nota"),
-            rs.getString("comentario"),
-            rs.getObject("avaliado_em", java.time.OffsetDateTime.class)),
-        visitaId,
-        usuarioId,
-        nota,
-        comentario);
+      NovaAvaliacaoColeta avaliacao) {
+    try {
+      return jdbc.queryForObject("""
+          INSERT INTO tb_avaliacoes_visitas_coletas (
+              visita_coleta_id, usuario_avaliador_id, nota, comentario)
+          VALUES (?, ?, ?, ?)
+          RETURNING id_avaliacao, nota, comentario, avaliado_em
+          """,
+          (rs, rowNum) -> new AvaliacaoColeta(
+              rs.getInt("id_avaliacao"),
+              avaliacao.agendamentoId(),
+              visitaId,
+              rs.getInt("nota"),
+              rs.getString("comentario"),
+              rs.getObject("avaliado_em", OffsetDateTime.class)),
+          visitaId,
+          avaliacao.usuarioId(),
+          avaliacao.nota(),
+          avaliacao.comentario());
+    } catch (DuplicateKeyException exception) {
+      // duas avaliações ao mesmo tempo: a restrição única do banco decide
+      throw AvaliacaoColetaException.jaAvaliada();
+    }
   }
 }
