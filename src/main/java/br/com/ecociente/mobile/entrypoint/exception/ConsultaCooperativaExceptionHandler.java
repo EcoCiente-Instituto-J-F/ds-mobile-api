@@ -11,13 +11,15 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import br.com.ecociente.mobile.core.exception.ConsultaCooperativaException;
 import br.com.ecociente.mobile.entrypoint.controller.AvaliacoesCooperativaController;
 import br.com.ecociente.mobile.entrypoint.controller.CooperativaController;
+import br.com.ecociente.mobile.entrypoint.controller.CooperativaDetalheController;
 import br.com.ecociente.mobile.entrypoint.controller.CondominiosAtendidosController;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice(assignableTypes = {
     CondominiosAtendidosController.class,
     AvaliacoesCooperativaController.class,
-    CooperativaController.class
+    CooperativaController.class,
+    CooperativaDetalheController.class
 })
 public class ConsultaCooperativaExceptionHandler {
 
