@@ -35,6 +35,7 @@ Rode o mesmo comando antes de abrir a PR. Os testes de integração usam Testcon
 
 - **Arquitetura em camadas:** `entrypoint` (controllers, DTOs) → `core` (services, domínio, interfaces de gateway) → `dataprovider` (implementações, entidades, repositórios). O `core` não depende de `entrypoint` nem de `dataprovider`.
 - **Identidade vem do token:** o `usuarioId` é lido do JWT (`@AuthenticationPrincipal`), nunca de parâmetro enviado pelo cliente.
+- **Verificação de dono no service:** quem pode ver ou alterar um recurso (síndico responsável, responsável ativo pela cooperativa, vínculo aprovado no condomínio) é checado no service do `core`, que lança a exceção de negócio traduzida em 403/404 pelo handler em `entrypoint/exception`.
 - **Rotas protegidas por padrão:** qualquer exceção à autenticação em `SecurityConfig` precisa ser discutida na PR.
 - **Banco:** o schema é gerenciado fora deste repositório (`ddl-auto=validate`); não crie tabelas por aqui.
 - **Configuração em `application.properties`:** variáveis novas entram lá, com a documentação correspondente no README e no `.env.example`.
