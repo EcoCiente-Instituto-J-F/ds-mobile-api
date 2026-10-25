@@ -10,12 +10,15 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-
+import br.com.ecociente.mobile.entrypoint.controller.PostagensEmAnaliseController;
 import br.com.ecociente.mobile.core.exception.PostagemException;
 import br.com.ecociente.mobile.entrypoint.controller.PostagemController;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@RestControllerAdvice(assignableTypes = PostagemController.class)
+@RestControllerAdvice(assignableTypes = {
+    PostagemController.class,
+    PostagensEmAnaliseController.class
+})
 public class PostagemExceptionHandler {
 
   @ExceptionHandler(PostagemException.class)
