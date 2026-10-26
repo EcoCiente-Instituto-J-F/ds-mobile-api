@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS tb_rel_usuarios_condominios;
+DROP TABLE IF EXISTS tb_moradores;
 DROP TABLE IF EXISTS tb_torres;
 DROP TABLE IF EXISTS tb_cooperativas;
-DROP TABLE IF EXISTS tb_moradores;
 DROP TABLE IF EXISTS tb_condominios;
 DROP TABLE IF EXISTS tb_sindicos;
 DROP TABLE IF EXISTS tb_telefones;
@@ -89,7 +89,8 @@ CREATE TABLE tb_torres (
 CREATE TABLE tb_moradores (
     id_morador INTEGER PRIMARY KEY,
     condominio_id INTEGER NOT NULL REFERENCES tb_condominios(id_condominio),
-    usuario_id INTEGER NOT NULL UNIQUE REFERENCES tb_usuarios(id_usuario)
+    usuario_id INTEGER NOT NULL UNIQUE REFERENCES tb_usuarios(id_usuario),
+    torre_id INTEGER REFERENCES tb_torres(id_torre)
 );
 
 CREATE TABLE tb_cooperativas (
@@ -145,7 +146,7 @@ SELECT
     'Rua ' || id,
     id::text,
     NULL
-FROM generate_series(1, 8) AS id;
+FROM generate_series(1, 9) AS id;
 
 INSERT INTO tb_usuarios (
     id_usuario, nome_usuario, email_usuario, senha_hash,
@@ -176,6 +177,11 @@ INSERT INTO tb_usuarios (
         5, 'Usuário Inativo', 'inativo@teste.com', 'hash-inativo',
         NULL, NULL, NULL,
         FALSE, '2026-01-01T12:00:00Z', 1, 5
+    ),
+    (
+        6, 'Morador Sem Torre', 'sem-torre@teste.com', 'hash-sem-torre',
+        NULL, NULL, NULL,
+        TRUE, '2026-01-01T12:00:00Z', 2, 9
     );
 
 INSERT INTO tb_sindicos VALUES (20, 2);
@@ -193,7 +199,9 @@ INSERT INTO tb_torres VALUES
     (1001, 'Torre A', 100),
     (2001, 'Torre Única', 200);
 
-INSERT INTO tb_moradores VALUES (10, 100, 1);
+INSERT INTO tb_moradores VALUES
+    (10, 100, 1, 1001),
+    (11, 200, 6, NULL);
 
 INSERT INTO tb_cooperativas (
     id_cooperativa, cnpj_cooperativa, nome_cooperativa,

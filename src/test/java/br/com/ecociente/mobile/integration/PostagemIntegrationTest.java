@@ -12,6 +12,7 @@ import java.sql.Statement;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.sql.DataSource;
 
@@ -50,7 +51,11 @@ import br.com.ecociente.mobile.config.security.SecurityConfig;
 import br.com.ecociente.mobile.core.service.ConsultarCategoriasResiduoService;
 import br.com.ecociente.mobile.core.service.ConsultarPostagensCondominioService;
 import br.com.ecociente.mobile.core.service.ConsultarPostagensUsuarioService;
+import br.com.ecociente.mobile.core.domain.ResultadoVoto;
+import br.com.ecociente.mobile.core.exception.PostagemException;
+import br.com.ecociente.mobile.core.gateway.ValidadorPostagemGateway;
 import br.com.ecociente.mobile.core.service.CriarPostagemService;
+import br.com.ecociente.mobile.core.service.VotarPostagemService;
 import br.com.ecociente.mobile.dataprovider.gateway.PostagemGatewayImpl;
 import br.com.ecociente.mobile.entrypoint.controller.CategoriaResiduoController;
 import br.com.ecociente.mobile.entrypoint.controller.PostagemController;
@@ -87,6 +92,7 @@ class PostagemIntegrationTest {
 
   @BeforeEach
   void preparar() throws Exception {
+    Config.USUARIO_RECEBIDO.set(null);
     try (Connection connection = dataSource.getConnection();
         Statement statement = connection.createStatement()) {
 
@@ -384,6 +390,55 @@ class PostagemIntegrationTest {
         .andExpect(jsonPath("$.codigo").value("JSON_INVALIDO"));
   }
 
+  @Test
+  void deveRegistrarVotoDoMorador() throws Exception {
+    mvc.perform(post("/api/postagens/1/votos")
+        .header("Authorization", bearer(20))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"tipo\":\"aprovar\"}"))
+        .andExpect(status().isOk())
+        .andExpect(content().json("{\"saldoConfianca\":3,\"pontuacaoAtiva\":true}", true));
+  }
+
+  @Test
+  void deveUsarUsuarioDoJwtEIgnorarUsuarioIdDoCorpo() throws Exception {
+    mvc.perform(post("/api/postagens/1/votos")
+        .header("Authorization", bearer(20))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"tipo\":\"aprovar\",\"usuarioId\":99}"))
+        .andExpect(status().isOk());
+
+    assertEquals(20, Config.USUARIO_RECEBIDO.get());
+  }
+
+  @Test
+  void deveRejeitarTipoDeVotoInvalido() throws Exception {
+    mvc.perform(post("/api/postagens/1/votos")
+        .header("Authorization", bearer(20))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"tipo\":\"curtir\"}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.codigo").value("ERRO_VALIDACAO"));
+  }
+
+  @Test
+  void deveDevolverConflitoQuandoJaVotou() throws Exception {
+    mvc.perform(post("/api/postagens/999/votos")
+        .header("Authorization", bearer(20))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"tipo\":\"aprovar\"}"))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.codigo").value("VOTO_JA_REGISTRADO"));
+  }
+
+  @Test
+  void deveExigirJwtParaVotar() throws Exception {
+    mvc.perform(post("/api/postagens/1/votos")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"tipo\":\"aprovar\"}"))
+        .andExpect(status().isUnauthorized());
+  }
+
   private String bearer(int usuario) {
     String token = Jwts.builder()
         .subject("usuario-" + usuario + "@teste.com")
@@ -413,6 +468,7 @@ class PostagemIntegrationTest {
       ConsultarPostagensCondominioService.class,
       ConsultarPostagensUsuarioService.class,
       ConsultarCategoriasResiduoService.class,
+      VotarPostagemService.class,
       PostagemGatewayImpl.class,
       PostagemMapper.class,
       PostagemController.class,
@@ -420,6 +476,22 @@ class PostagemIntegrationTest {
       PostagemExceptionHandler.class
   })
   static class Config {
+
+    static final AtomicReference<Integer> USUARIO_RECEBIDO = new AtomicReference<>();
+
+    @Bean
+    ValidadorPostagemGateway validadorPostagemGateway() {
+      return (postagemId, usuarioId, tipo, motivoDenunciaId, comentario) -> {
+        USUARIO_RECEBIDO.set(usuarioId);
+        if (postagemId == 999) {
+          throw new PostagemException(
+              PostagemException.Tipo.CONFLITO,
+              "VOTO_JA_REGISTRADO",
+              "Você já votou nesta postagem");
+        }
+        return new ResultadoVoto(3, true);
+      };
+    }
 
     @Bean
     DataSource dataSource() {

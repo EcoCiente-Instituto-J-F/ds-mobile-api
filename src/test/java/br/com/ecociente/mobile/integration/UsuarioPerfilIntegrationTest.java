@@ -166,6 +166,22 @@ class UsuarioPerfilIntegrationTest {
     }
 
     @Test
+    void deveRetornarTorreDoMorador() throws Exception {
+        JsonNode torre = consultar(1).get("torre");
+
+        assertEquals(1001, torre.get("id").asInt());
+        assertEquals("Torre A", torre.get("nome").asText());
+    }
+
+    @Test
+    void deveRetornarTorreNulaParaMoradorSemTorre() throws Exception {
+        JsonNode perfil = consultar(6);
+
+        assertTrue(perfil.get("torre").isNull());
+        assertFalse(perfil.get("moradorId").isNull());
+    }
+
+    @Test
     void deveRetornarCondominiosSemDuplicarEComTorresOrdenadas()
         throws Exception {
 
@@ -245,6 +261,7 @@ class UsuarioPerfilIntegrationTest {
 
         assertEquals(20, perfil.get("sindicoId").asInt());
         assertTrue(perfil.get("moradorId").isNull());
+        assertTrue(perfil.get("torre").isNull());
         assertEquals(2, perfil.get("condominios").size());
 
         for (JsonNode condominio : perfil.get("condominios")) {
@@ -293,6 +310,7 @@ class UsuarioPerfilIntegrationTest {
         assertEquals(0, perfil.get("condominios").size());
         assertTrue(perfil.get("cooperativa").isNull());
         assertTrue(perfil.get("moradorId").isNull());
+        assertTrue(perfil.get("torre").isNull());
         assertTrue(perfil.get("sindicoId").isNull());
         assertTrue(perfil.get("cpf").isNull());
         assertTrue(perfil.get("dataNascimento").isNull());
@@ -346,7 +364,7 @@ class UsuarioPerfilIntegrationTest {
     }
 
     @Test
-    void naoDeveExporCredenciaisCodigoDeAcessoOuTorreDoUsuario()
+    void naoDeveExporCredenciaisOuCodigoDeAcesso()
         throws Exception {
 
         JsonNode perfil = consultar(1);
@@ -357,9 +375,7 @@ class UsuarioPerfilIntegrationTest {
             "senha_hash",
             "token",
             "codigoAcesso",
-            "codigo_acesso",
-            "torreId",
-            "torre_id"
+            "codigo_acesso"
         )) {
             assertTrue(
                 perfil.findValues(campo).isEmpty(),

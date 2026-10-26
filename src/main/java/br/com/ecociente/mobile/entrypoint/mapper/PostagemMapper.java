@@ -5,9 +5,11 @@ import org.springframework.stereotype.Component;
 import br.com.ecociente.mobile.core.domain.CategoriaResiduo;
 import br.com.ecociente.mobile.core.domain.PaginaPostagens;
 import br.com.ecociente.mobile.core.domain.Postagem;
+import br.com.ecociente.mobile.core.domain.ResultadoVoto;
 import br.com.ecociente.mobile.entrypoint.dto.response.CategoriaResiduoResponseDto;
 import br.com.ecociente.mobile.entrypoint.dto.response.PostagemResponseDto;
 import br.com.ecociente.mobile.entrypoint.dto.response.PostagensResponseDto;
+import br.com.ecociente.mobile.entrypoint.dto.response.ResultadoVotoResponseDto;
 
 @Component
 public class PostagemMapper {
@@ -28,6 +30,12 @@ public class PostagemMapper {
         postagem.saldoConfianca(),
         postagem.dataLimiteAnalise(),
         postagem.resolvidoEm());
+  }
+
+  public ResultadoVotoResponseDto toResponse(ResultadoVoto resultado) {
+    return new ResultadoVotoResponseDto(
+        resultado.saldoConfianca(),
+        resultado.pontuacaoAtiva());
   }
 
   public CategoriaResiduoResponseDto toResponse(CategoriaResiduo categoria) {

@@ -27,7 +27,7 @@ Funcionalidades atuais:
 | Cursos | `GET /api/cursos`, `GET /api/cursos/{cursoId}` | Usuário autenticado |
 | Aulas | `GET /api/cursos/{cursoId}/aulas`, `GET /api/aulas/{aulaId}` | Usuário autenticado |
 | Quizzes | `GET /api/aulas/{aulaId}/quiz`, `POST /api/quizzes/{id}/tentativas`, `POST /api/tentativas-quiz/{id}/finalizar`, `GET /api/tentativas-quiz/{id}/revisao` | Usuário autenticado |
-| Postagens de descarte | `POST /api/postagens`, `GET /api/postagens` | Morador com vínculo aprovado no condomínio |
+| Postagens de descarte | `POST /api/postagens`, `GET /api/postagens`, `POST /api/postagens/{id}/votos` | Morador com vínculo aprovado no condomínio |
 | Minhas postagens | `GET /api/postagens/minhas` | Usuário autenticado (só as próprias) |
 | Categorias de resíduo | `GET /api/categorias-residuos` | Usuário autenticado |
 | Cooperativas próximas | `GET /api/cooperativas?page=0&size=10` | Síndico de condomínio ativo |
@@ -72,6 +72,8 @@ Edite o `.env`. A aplicação lê esse arquivo na raiz (`spring.config.import`) 
 | `JWT_SECRET` | sim | Segredo HMAC usado para validar os JWT |
 | `PONTUACAO_BASE_URL` | não | URL da `ds-pontuacao-api`, sem o caminho dos endpoints |
 | `PONTUACAO_TOKEN_SERVICO` | não | JWT de serviço aceito pela pontuação (perfil `SERVICE` ou `ADMIN`), sem o prefixo `Bearer`. Não é o `JWT_SECRET` |
+| `VALIDADOR_BASE_URL` | não | URL da `ds-validador-postagens-api`, sem o caminho (ex.: `http://localhost:8000`) |
+| `VALIDADOR_CHAVE_API` | não | Chave enviada no `X-Api-Key`; mesmo valor do `CHAVE_API` do validador |
 | `APP_PORT` | não | Porta publicada pelo Docker Compose (padrão `8080`) |
 | `SERVER_PORT` | não | Porta interna da aplicação (padrão `9654`; a imagem Docker define `8080`) |
 
