@@ -22,6 +22,7 @@ public class UsuarioPerfilMapper {
             usuario.tipoUsuarioId(),
             usuario.tipoUsuario(),
             usuario.moradorId(),
+            torre(usuario.torre()),
             usuario.sindicoId(),
             endereco(usuario.endereco()),
             usuario.telefones().stream()
@@ -37,6 +38,14 @@ public class UsuarioPerfilMapper {
                 .map(this::condominio)
                 .toList()
         );
+    }
+
+    private TorreDto torre(UsuarioPerfil.Torre torre) {
+        if (torre == null) {
+            return null;
+        }
+
+        return new TorreDto(torre.id(), torre.nome());
     }
 
     private EnderecoDto endereco(UsuarioPerfil.Endereco endereco) {

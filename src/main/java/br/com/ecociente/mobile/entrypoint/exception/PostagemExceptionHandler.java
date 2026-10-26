@@ -29,6 +29,7 @@ public class PostagemExceptionHandler {
       case NAO_PERMITIDO -> HttpStatus.FORBIDDEN;
       case NAO_ENCONTRADO -> HttpStatus.NOT_FOUND;
       case CONFLITO -> HttpStatus.CONFLICT;
+      case INDISPONIVEL -> HttpStatus.SERVICE_UNAVAILABLE;
     };
 
     return ResponseEntity.status(status).body(

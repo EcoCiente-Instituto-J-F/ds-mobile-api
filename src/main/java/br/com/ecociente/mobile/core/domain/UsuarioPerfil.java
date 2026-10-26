@@ -17,6 +17,7 @@ public record UsuarioPerfil(
     Integer tipoUsuarioId,
     String tipoUsuario,
     Integer moradorId,
+    Torre torre,
     Integer sindicoId,
     Endereco endereco,
     List<Telefone> telefones,

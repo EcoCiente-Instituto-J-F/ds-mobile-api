@@ -48,6 +48,14 @@ public class UsuarioPerfilRepository {
           'tipoUsuarioId', tu.id_tipo_usuario,
           'tipoUsuario', tu.nome_tipo,
           'moradorId', m.id_morador,
+          'torre', (
+              SELECT jsonb_build_object(
+                  'id', tm.id_torre,
+                  'nome', tm.nome_torre
+              )
+              FROM tb_torres tm
+              WHERE tm.id_torre = m.torre_id
+          ),
           'sindicoId', s.id_sindico,
           'endereco', eu.dados,
           'telefones', COALESCE((

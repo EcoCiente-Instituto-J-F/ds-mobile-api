@@ -6,7 +6,8 @@ public class PostagemException extends RuntimeException {
     DADOS_INVALIDOS,
     NAO_PERMITIDO,
     NAO_ENCONTRADO,
-    CONFLITO
+    CONFLITO,
+    INDISPONIVEL
   }
 
   private final Tipo tipo;

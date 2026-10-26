@@ -17,6 +17,7 @@ public record UsuarioPerfilResponseDto(
     Integer tipoUsuarioId,
     String tipoUsuario,
     Integer moradorId,
+    TorreDto torre,
     Integer sindicoId,
     EnderecoDto endereco,
     List<TelefoneDto> telefones,
