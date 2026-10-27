@@ -22,9 +22,10 @@ jobs:
 
     name: Build e testes
 
-    runs-on: ubuntu-latest
+    # Fixar a imagem durante a migracao do ubuntu-latest para Ubuntu 26.04.
+    runs-on: ubuntu-24.04
 
-    timeout-minutes: 15
+    timeout-minutes: 25
 
     steps:
 
@@ -39,6 +40,18 @@ jobs:
 
       - name: Configurar Gradle
         uses: gradle/actions/setup-gradle@v6
+
+      - name: Verificar disponibilidade do Docker
+        run: |
+          docker version
+          docker info
+
+      # O Testcontainers 1.x pode negociar API 1.32, mas Docker 29 exige >=1.44.
+      # A configuracao e gerada apenas no runner e nao afeta o Docker local.
+      - name: Ajustar API do docker-java para os testes
+        run: |
+          mkdir -p src/test/resources
+          printf '%s\n' 'api.version=1.44' > src/test/resources/docker-java.properties
 
       - name: Dar permissao ao Gradle Wrapper
         run: chmod +x gradlew
