@@ -38,7 +38,8 @@ public class SecurityConfig {
                                 "/v3/api-docs",
                                 "/v3/api-docs/**",
                                 "/api-docs",
-                                "/api-docs/**")
+                                "/api-docs/**",
+                                "/api/v1/notificacoes/motivacional")
                         .permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(errors -> errors
