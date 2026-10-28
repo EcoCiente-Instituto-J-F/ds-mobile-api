@@ -62,6 +62,7 @@ public record UsuarioPerfilResponseDto(
         boolean ativo,
         Integer tipoCondominioId,
         String tipoCondominio,
+        String urlFoto,
         boolean sindicoResponsavel,
         boolean cadastroMorador,
         EnderecoDto endereco,

@@ -161,6 +161,7 @@ CREATE TABLE tb_condominios (
     codigo_acesso        VARCHAR(20),
     ativo                BOOLEAN      NOT NULL DEFAULT TRUE,
     tipo_condominio_id   INTEGER      NOT NULL,
+    url_foto             VARCHAR(500),
     sindico_id           INTEGER,
     endereco_id          INTEGER,
     CONSTRAINT fk_condominios_tipo_condominio_id FOREIGN KEY (tipo_condominio_id) REFERENCES tb_lkp_tipos_condominios (id_tipo_condominio),

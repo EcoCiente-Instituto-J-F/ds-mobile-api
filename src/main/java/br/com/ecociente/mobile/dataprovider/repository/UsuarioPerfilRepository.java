@@ -96,6 +96,7 @@ public class UsuarioPerfilRepository {
                       'ativo', c.ativo,
                       'tipoCondominioId', tc.id_tipo_condominio,
                       'tipoCondominio', tc.nome_tipo,
+                      'urlFoto', c.url_foto,
                       'sindicoResponsavel',
                           COALESCE(c.sindico_id = s.id_sindico, FALSE),
                       'cadastroMorador',
