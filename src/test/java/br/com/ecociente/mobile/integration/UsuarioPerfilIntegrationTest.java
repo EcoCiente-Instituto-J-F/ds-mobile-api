@@ -182,6 +182,25 @@ class UsuarioPerfilIntegrationTest {
     }
 
     @Test
+    void deveRetornarAUrlDaFotoDoCondominioOuNulaQuandoNaoHa() throws Exception {
+        JsonNode semFoto = consultar(1).get("condominios").get(0);
+
+        assertTrue(semFoto.get("urlFoto").isNull());
+
+        jdbc.update(
+            "UPDATE tb_condominios SET url_foto = ? WHERE id_condominio = 100",
+            "https://res.cloudinary.com/demo/condominio.jpg"
+        );
+
+        JsonNode comFoto = consultar(1).get("condominios").get(0);
+
+        assertEquals(
+            "https://res.cloudinary.com/demo/condominio.jpg",
+            comFoto.get("urlFoto").asText()
+        );
+    }
+
+    @Test
     void deveRetornarCondominiosSemDuplicarEComTorresOrdenadas()
         throws Exception {
 

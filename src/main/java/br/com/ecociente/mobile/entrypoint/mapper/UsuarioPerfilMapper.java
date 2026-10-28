@@ -92,6 +92,7 @@ public class UsuarioPerfilMapper {
             condominio.ativo(),
             condominio.tipoCondominioId(),
             condominio.tipoCondominio(),
+            condominio.urlFoto(),
             condominio.sindicoResponsavel(),
             condominio.cadastroMorador(),
             endereco(condominio.endereco()),
