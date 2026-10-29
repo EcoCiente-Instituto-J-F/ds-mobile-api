@@ -76,7 +76,8 @@ CREATE TABLE tb_condominios (
     tipo_condominio_id INTEGER NOT NULL
         REFERENCES tb_lkp_tipos_condominios(id_tipo_condominio),
     sindico_id INTEGER REFERENCES tb_sindicos(id_sindico),
-    endereco_id INTEGER UNIQUE REFERENCES tb_enderecos(id_endereco)
+    endereco_id INTEGER UNIQUE REFERENCES tb_enderecos(id_endereco),
+    url_foto VARCHAR(500)
 );
 
 CREATE TABLE tb_torres (
