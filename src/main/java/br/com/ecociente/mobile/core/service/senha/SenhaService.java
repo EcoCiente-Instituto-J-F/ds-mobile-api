@@ -136,6 +136,7 @@ public class SenhaService {
                         String senhaAtual,
                         String novaSenha,
                         String confirmacaoSenha) {
+
                 validarNovaSenha(novaSenha, confirmacaoSenha);
 
                 Usuario usuario = usuarioGateway
@@ -153,6 +154,10 @@ public class SenhaService {
                 String senhaHash = senhaEncoderGateway.gerarHash(novaSenha);
 
                 usuarioGateway.atualizarSenha(usuario.getId(), senhaHash);
+
+                firebaseSenhaGateway.atualizarSenha(
+                                usuario.getEmail(),
+                                novaSenha);
 
                 recuperacaoSenhaGateway.invalidarPendentes(
                                 usuario.getId(),
