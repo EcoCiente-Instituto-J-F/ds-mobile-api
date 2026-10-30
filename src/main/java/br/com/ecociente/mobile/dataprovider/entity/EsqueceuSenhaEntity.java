@@ -1,16 +1,25 @@
 package br.com.ecociente.mobile.dataprovider.entity;
 
-import jakarta.persistence.*;
+import java.time.OffsetDateTime;
+
+import org.hibernate.annotations.TimeZoneStorage;
+import org.hibernate.annotations.TimeZoneStorageType;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.sql.Timestamp;
-
 @Entity
-@Table(name = "tb_recuperacoes_senha")@Getter
+@Table(name = "tb_recuperacoes_senha")
+@Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,10 +37,11 @@ public class EsqueceuSenhaEntity {
     @Column(name = "token_hash", nullable = false, unique = true, length = 255)
     private String tokenHash;
 
+    @TimeZoneStorage(TimeZoneStorageType.NATIVE)
     @Column(name = "expira_em", nullable = false)
-    private Timestamp expiraEm;
+    private OffsetDateTime expiraEm;
 
+    @TimeZoneStorage(TimeZoneStorageType.NATIVE)
     @Column(name = "utilizado_em")
-    private Timestamp utilizadoEm;
-  
+    private OffsetDateTime utilizadoEm;
 }
