@@ -145,7 +145,8 @@ public class SecurityConfig {
                                 List.of(
                                                 "Authorization",
                                                 "Content-Type",
-                                                "Accept"));
+                                                "Accept",
+                                                "Idempotency-Key"));
 
                 configuration.setExposedHeaders(
                                 List.of("Location"));
