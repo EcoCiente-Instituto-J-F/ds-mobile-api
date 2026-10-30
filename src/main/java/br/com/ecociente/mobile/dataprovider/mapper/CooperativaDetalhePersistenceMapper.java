@@ -5,13 +5,13 @@ import java.math.BigDecimal;
 import org.springframework.stereotype.Component;
 
 import br.com.ecociente.mobile.core.domain.Cooperativa;
-import br.com.ecociente.mobile.dataprovider.entity.CooperativaDetalheEntity;
+import br.com.ecociente.mobile.dataprovider.entity.CooperativaEntity;
 
 @Component
 public class CooperativaDetalhePersistenceMapper {
 
   public Cooperativa toDomain(
-      CooperativaDetalheEntity entity,
+      CooperativaEntity entity,
       Object[] dados) {
 
     BigDecimal media = dados[6] == null

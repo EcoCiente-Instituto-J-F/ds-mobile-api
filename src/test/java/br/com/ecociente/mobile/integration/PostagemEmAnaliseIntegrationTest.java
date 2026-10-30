@@ -52,7 +52,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import br.com.ecociente.mobile.config.security.JwtService;
 import br.com.ecociente.mobile.config.security.SecurityConfig;
 import br.com.ecociente.mobile.core.service.ConsultarPostagensEmAnaliseService;
-import br.com.ecociente.mobile.dataprovider.entity.PostagemAnaliseEntity;
+import br.com.ecociente.mobile.dataprovider.entity.PostagemEntity;
 import br.com.ecociente.mobile.dataprovider.gateway.PostagemAnaliseGatewayImpl;
 import br.com.ecociente.mobile.dataprovider.mapper.PostagemAnalisePersistenceMapper;
 import br.com.ecociente.mobile.dataprovider.repository.PostagemAnaliseRepository;
@@ -391,7 +391,7 @@ class PostagensEmAnaliseIntegrationTest {
           new HibernateJpaVendorAdapter());
 
       factory.setManagedTypes(PersistenceManagedTypes.of(
-          PostagemAnaliseEntity.class.getName()));
+          PostagemEntity.class.getName()));
 
       factory.setJpaPropertyMap(Map.of(
           "hibernate.hbm2ddl.auto", "none"));

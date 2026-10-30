@@ -1,213 +1,229 @@
 package br.com.ecociente.mobile.dataprovider.gateway;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
+import java.sql.SQLException;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.web.client.RestClient;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.transaction.CannotCreateTransactionException;
 
-import com.sun.net.httpserver.HttpServer;
-
+import br.com.ecociente.mobile.core.domain.ResultadoVoto;
 import br.com.ecociente.mobile.core.exception.PostagemException;
-import br.com.ecociente.mobile.core.exception.PostagemException.Tipo;
+import br.com.ecociente.mobile.core.exception.validador.NotFoundException;
+import br.com.ecociente.mobile.core.exception.validador.PermissaoNegadaException;
+import br.com.ecociente.mobile.core.service.validador.ValidadorPostagemValidacaoService;
 
+@ExtendWith(MockitoExtension.class)
 class ValidadorPostagemGatewayImplTest {
 
-  private static final String PADRAO = "Não foi possível registrar o voto agora. Tente novamente.";
+  @Mock
+  private ValidadorPostagemValidacaoService service;
 
-  private HttpServer servidor;
-  private final AtomicInteger chamadas = new AtomicInteger();
-  private final AtomicReference<String> metodo = new AtomicReference<>();
-  private final AtomicReference<String> caminho = new AtomicReference<>();
-  private final AtomicReference<String> chave = new AtomicReference<>();
-  private final AtomicReference<String> corpo = new AtomicReference<>();
-
-  private volatile int statusResposta;
-  private volatile String corpoResposta;
+  private ValidadorPostagemGatewayImpl gateway;
 
   @BeforeEach
-  void subir() throws IOException {
-    servidor = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-    servidor.createContext("/", troca -> {
-      chamadas.incrementAndGet();
-      metodo.set(troca.getRequestMethod());
-      caminho.set(troca.getRequestURI().getPath());
-      chave.set(troca.getRequestHeaders().getFirst("X-Api-Key"));
-      corpo.set(new String(troca.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
-
-      byte[] bytes = corpoResposta.getBytes(StandardCharsets.UTF_8);
-      troca.getResponseHeaders().add("Content-Type", "application/json");
-      troca.sendResponseHeaders(statusResposta, bytes.length);
-      troca.getResponseBody().write(bytes);
-      troca.close();
-    });
-    servidor.start();
-  }
-
-  @AfterEach
-  void parar() {
-    servidor.stop(0);
-  }
-
-  private String url() {
-    return "http://127.0.0.1:" + servidor.getAddress().getPort();
-  }
-
-  private ValidadorPostagemGatewayImpl gateway() {
-    return new ValidadorPostagemGatewayImpl(RestClient.builder(), url(), "segredo-teste");
-  }
-
-  private PostagemException votarComFalha() {
-    return assertThrows(
-        PostagemException.class,
-        () -> gateway().votar(42, 7, "denunciar", 2, "foto errada"));
+  void preparar() {
+    gateway = new ValidadorPostagemGatewayImpl(service);
   }
 
   @Test
-  void deveEnviarVotoEmSnakeCaseEMapearResultado() {
-    statusResposta = 200;
-    corpoResposta = "{\"saldo_confianca\":3,\"pontuacao_ativa\":true,\"extra\":1}";
+  void deveRegistrarAprovacaoPeloServicoLocal() {
+    when(service.votar(10, 20, "aprovar", null, null))
+        .thenReturn(
+            new br.com.ecociente.mobile.core.domain.validador.ResultadoVoto(
+                3, true));
 
-    var resultado = gateway().votar(42, 7, "denunciar", 2, "foto errada");
+    var resultado = gateway.votar(
+        10, 20, "aprovar", null, null);
 
-    assertEquals(3, resultado.saldoConfianca());
-    assertTrue(resultado.pontuacaoAtiva());
-    assertEquals("POST", metodo.get());
-    assertEquals("/v1/postagens/42/votos", caminho.get());
-    assertEquals("segredo-teste", chave.get());
-    assertTrue(corpo.get().contains("\"usuario_id\":7"), corpo.get());
-    assertTrue(corpo.get().contains("\"tipo\":\"denunciar\""), corpo.get());
-    assertTrue(corpo.get().contains("\"motivo_denuncia_id\":2"), corpo.get());
-    assertTrue(corpo.get().contains("\"comentario\":\"foto errada\""), corpo.get());
+    assertEquals(new ResultadoVoto(3, true), resultado);
+
+    verify(service).votar(
+        10, 20, "aprovar", null, null);
   }
 
   @Test
-  void deveMapearErrosDoValidadorUsandoODetail404403409() {
-    verificar(404, Tipo.NAO_ENCONTRADO, "POSTAGEM_NAO_ENCONTRADA");
-    verificar(403, Tipo.NAO_PERMITIDO, "VOTO_NAO_PERMITIDO");
-    verificar(409, Tipo.CONFLITO, "VOTO_JA_REGISTRADO");
-  }
+  void deveEncaminharMotivoEComentarioDaDenuncia() {
+    when(service.votar(
+        10, 20, "denunciar", 2, "Foto inadequada"))
+        .thenReturn(
+            new br.com.ecociente.mobile.core.domain.validador.ResultadoVoto(
+                -5, false));
 
-  private void verificar(int status, Tipo tipo, String codigo) {
-    statusResposta = status;
-    corpoResposta = "{\"detail\":\"mensagem " + status + "\"}";
+    var resultado = gateway.votar(
+        10, 20, "denunciar", 2, "Foto inadequada");
 
-    var erro = votarComFalha();
+    assertEquals(new ResultadoVoto(-5, false), resultado);
 
-    assertEquals(tipo, erro.getTipo(), "status " + status);
-    assertEquals(codigo, erro.getCodigo(), "status " + status);
-    assertEquals("mensagem " + status, erro.getMessage(), "status " + status);
-  }
-
-  private void verificarRegra(int status, String detail, Tipo tipo, String codigo, String mensagem) {
-    statusResposta = status;
-    corpoResposta = detail == null ? "{}" : "{\"detail\":\"" + detail + "\"}";
-
-    var erro = votarComFalha();
-
-    assertEquals(tipo, erro.getTipo(), detail);
-    assertEquals(codigo, erro.getCodigo(), detail);
-    assertEquals(mensagem, erro.getMessage(), detail);
+    verify(service).votar(
+        10, 20, "denunciar", 2, "Foto inadequada");
   }
 
   @Test
-  void deveTraduzirRegrasDoProcedureParaMensagensLegiveis() {
-    for (int status : new int[] { 400, 422 }) {
-      verificarRegra(status, "Janela comunitaria da postagem 42 encerrou em 2026-10-24 13:22:01+00",
-          Tipo.CONFLITO, "VOTACAO_ENCERRADA", "A votação desta postagem já foi encerrada");
-      verificarRegra(status, "Postagem 42 nao aceita novos votos",
-          Tipo.CONFLITO, "VOTACAO_ENCERRADA", "A votação desta postagem já foi encerrada");
-      verificarRegra(status, "erro: motivo_denuncia_id e obrigatorio para denunciar",
-          Tipo.DADOS_INVALIDOS, "MOTIVO_DENUNCIA_OBRIGATORIO", "Informe o motivo da denúncia");
-      verificarRegra(status, "motivo_denuncia_id deve ser nulo para aprovar",
-          Tipo.DADOS_INVALIDOS, "MOTIVO_DENUNCIA_INDEVIDO", "Voto de aprovação não leva motivo de denúncia");
-      verificarRegra(status, "Usuario 7 nao possui vinculo aprovado e ativo com o condominio da postagem",
-          Tipo.NAO_PERMITIDO, "SEM_VINCULO_APROVADO", "Você não tem vínculo aprovado com este condomínio");
-      verificarRegra(status, "texto cru desconhecido sp_x",
-          Tipo.DADOS_INVALIDOS, "VOTO_INVALIDO", "Voto inválido");
-      verificarRegra(status, null, Tipo.DADOS_INVALIDOS, "VOTO_INVALIDO", "Voto inválido");
-    }
-  }
-
-  @Test
-  void deveFicarIndisponivelQuandoRespostaVierIncompleta() {
-    statusResposta = 200;
-    corpoResposta = "{\"saldo_confianca\": 3}";
-
-    var erro = votarComFalha();
-
-    assertEquals(Tipo.INDISPONIVEL, erro.getTipo());
-    assertEquals(PADRAO, erro.getMessage());
-  }
-
-  @Test
-  void deveUsarMensagemPadraoQuandoNaoHaDetail() {
-    statusResposta = 409;
-    corpoResposta = "{}";
-
-    assertEquals("Você já votou nesta postagem", votarComFalha().getMessage());
-  }
-
-  @Test
-  void naoDeveRepassarDetailDe401NemDe5xxNemDeOutros4xx() {
-    for (int status : new int[] { 401, 500, 503, 418 }) {
-      statusResposta = status;
-      corpoResposta = "{\"detail\":\"segredo interno\"}";
-
-      var erro = votarComFalha();
-
-      assertEquals(Tipo.INDISPONIVEL, erro.getTipo(), "status " + status);
-      assertEquals("VALIDADOR_INDISPONIVEL", erro.getCodigo(), "status " + status);
-      assertEquals(PADRAO, erro.getMessage(), "status " + status);
-    }
-  }
-
-  @Test
-  void deveFicarIndisponivelQuandoRespostaForIlegivel() {
-    statusResposta = 200;
-    corpoResposta = "isto nao e json";
-
-    var erro = votarComFalha();
-
-    assertEquals(Tipo.INDISPONIVEL, erro.getTipo());
-    assertEquals(PADRAO, erro.getMessage());
-  }
-
-  @Test
-  void deveFicarIndisponivelQuandoNaoHaConexao() {
-    String urlFechada = url();
-    servidor.stop(0);
-
-    var gateway = new ValidadorPostagemGatewayImpl(RestClient.builder(), urlFechada, "segredo-teste");
+  void deveTraduzirPostagemInexistente() {
+    when(service.votar(10, 20, "aprovar", null, null))
+        .thenThrow(
+            new NotFoundException("Postagem não encontrada."));
 
     var erro = assertThrows(
         PostagemException.class,
-        () -> gateway.votar(42, 7, "aprovar", null, null));
+        () -> gateway.votar(
+            10, 20, "aprovar", null, null));
 
-    assertEquals(Tipo.INDISPONIVEL, erro.getTipo());
-    assertEquals(PADRAO, erro.getMessage());
+    assertEquals("Postagem não encontrada.", erro.getMessage());
   }
 
   @Test
-  void deveFicarIndisponivelSemChamarHttpQuandoNaoConfigurado() {
-    var semUrl = new ValidadorPostagemGatewayImpl(RestClient.builder(), "", "segredo-teste");
-    var semChave = new ValidadorPostagemGatewayImpl(RestClient.builder(), url(), " ");
+  void deveTraduzirVotoNaoPermitido() {
+    when(service.votar(10, 20, "aprovar", null, null))
+        .thenThrow(
+            new PermissaoNegadaException(
+                "O autor não pode votar na própria postagem."));
 
-    for (var gateway : new ValidadorPostagemGatewayImpl[] { semUrl, semChave }) {
-      var erro = assertThrows(
-          PostagemException.class,
-          () -> gateway.votar(42, 7, "aprovar", null, null));
+    var erro = assertThrows(
+        PostagemException.class,
+        () -> gateway.votar(
+            10, 20, "aprovar", null, null));
 
-      assertEquals(Tipo.INDISPONIVEL, erro.getTipo());
-      assertEquals("VALIDADOR_INDISPONIVEL", erro.getCodigo());
-    }
-    assertEquals(0, chamadas.get());
+    assertEquals(
+        "O autor não pode votar na própria postagem.",
+        erro.getMessage());
+  }
+
+  @Test
+  void deveTraduzirVotoDuplicado() {
+    when(service.votar(10, 20, "aprovar", null, null))
+        .thenThrow(
+            new DuplicateKeyException(
+                "Voto duplicado",
+                new SQLException("Duplicado", "23505")));
+
+    var erro = assertThrows(
+        PostagemException.class,
+        () -> gateway.votar(
+            10, 20, "aprovar", null, null));
+
+    assertEquals(
+        "Você já votou nesta postagem",
+        erro.getMessage());
+  }
+
+  @Test
+  void deveTraduzirReferenciaInvalida() {
+    when(service.votar(10, 20, "denunciar", 999, null))
+        .thenThrow(
+            new DataIntegrityViolationException(
+                "Referência inválida",
+                new SQLException("FK inválida", "23503")));
+
+    var erro = assertThrows(
+        PostagemException.class,
+        () -> gateway.votar(
+            10, 20, "denunciar", 999, null));
+
+    assertEquals(
+        "Referência inválida para o voto",
+        erro.getMessage());
+  }
+
+  @Test
+  void deveTraduzirJanelaEncerrada() {
+    when(service.votar(10, 20, "aprovar", null, null))
+        .thenThrow(
+            new DataIntegrityViolationException(
+                "Regra recusada",
+                new SQLException(
+                    "A postagem nao aceita novos votos",
+                    "P0001")));
+
+    var erro = assertThrows(
+        PostagemException.class,
+        () -> gateway.votar(
+            10, 20, "aprovar", null, null));
+
+    assertEquals(
+        "A votação desta postagem já foi encerrada",
+        erro.getMessage());
+  }
+
+  @Test
+  void deveTraduzirMotivoObrigatorio() {
+    when(service.votar(10, 20, "denunciar", null, null))
+        .thenThrow(
+            new DataIntegrityViolationException(
+                "Regra recusada",
+                new SQLException(
+                    "motivo_denuncia_id e obrigatorio",
+                    "P0001")));
+
+    var erro = assertThrows(
+        PostagemException.class,
+        () -> gateway.votar(
+            10, 20, "denunciar", null, null));
+
+    assertEquals(
+        "Informe o motivo da denúncia",
+        erro.getMessage());
+  }
+
+  @Test
+  void deveTraduzirAusenciaDeVinculoAprovado() {
+    when(service.votar(10, 20, "aprovar", null, null))
+        .thenThrow(
+            new DataIntegrityViolationException(
+                "Regra recusada",
+                new SQLException(
+                    "Usuario nao possui vinculo aprovado",
+                    "P0001")));
+
+    var erro = assertThrows(
+        PostagemException.class,
+        () -> gateway.votar(
+            10, 20, "aprovar", null, null));
+
+    assertEquals(
+        "Você não tem vínculo aprovado com este condomínio",
+        erro.getMessage());
+  }
+
+  @Test
+  void deveTraduzirFalhaDeConexao() {
+    when(service.votar(10, 20, "aprovar", null, null))
+        .thenThrow(
+            new DataAccessResourceFailureException(
+                "Banco indisponível"));
+
+    assertIndisponibilidade();
+  }
+
+  @Test
+  void deveTraduzirFalhaAoAbrirTransacao() {
+    when(service.votar(10, 20, "aprovar", null, null))
+        .thenThrow(
+            new CannotCreateTransactionException(
+                "Não foi possível abrir a transação"));
+
+    assertIndisponibilidade();
+  }
+
+  private void assertIndisponibilidade() {
+    var erro = assertThrows(
+        PostagemException.class,
+        () -> gateway.votar(
+            10, 20, "aprovar", null, null));
+
+    assertEquals(
+        "Não foi possível registrar o voto agora. Tente novamente.",
+        erro.getMessage());
   }
 }

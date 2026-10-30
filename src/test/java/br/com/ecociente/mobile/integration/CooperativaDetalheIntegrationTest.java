@@ -52,10 +52,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import br.com.ecociente.mobile.config.security.JwtService;
 import br.com.ecociente.mobile.config.security.SecurityConfig;
 import br.com.ecociente.mobile.core.service.ConsultarCooperativaService;
-import br.com.ecociente.mobile.dataprovider.entity.CooperativaDetalheEntity;
+import br.com.ecociente.mobile.dataprovider.entity.CooperativaEntity;
 import br.com.ecociente.mobile.dataprovider.gateway.CooperativaDetalheGatewayImpl;
 import br.com.ecociente.mobile.dataprovider.mapper.CooperativaDetalhePersistenceMapper;
-import br.com.ecociente.mobile.dataprovider.repository.CooperativaDetalheRepository;
+import br.com.ecociente.mobile.dataprovider.repository.CooperativaRepository;
 import br.com.ecociente.mobile.entrypoint.controller.CooperativaDetalheController;
 import br.com.ecociente.mobile.entrypoint.exception.ConsultaCooperativaExceptionHandler;
 import br.com.ecociente.mobile.entrypoint.mapper.CooperativaMapper;
@@ -339,7 +339,7 @@ class CooperativaDetalheIntegrationTest {
   @Configuration
   @EnableWebMvc
   @EnableTransactionManagement
-  @EnableJpaRepositories(basePackageClasses = CooperativaDetalheRepository.class, includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = CooperativaDetalheRepository.class))
+  @EnableJpaRepositories(basePackageClasses = CooperativaRepository.class, includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = CooperativaRepository.class))
   @Import({
       SecurityConfig.class,
       JwtService.class,
@@ -376,7 +376,7 @@ class CooperativaDetalheIntegrationTest {
           new HibernateJpaVendorAdapter());
 
       factory.setManagedTypes(PersistenceManagedTypes.of(
-          CooperativaDetalheEntity.class.getName()));
+          CooperativaEntity.class.getName()));
 
       factory.setJpaPropertyMap(Map.of(
           "hibernate.hbm2ddl.auto", "none"));

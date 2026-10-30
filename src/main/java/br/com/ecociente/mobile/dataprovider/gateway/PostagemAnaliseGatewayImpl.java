@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.ecociente.mobile.core.domain.Postagem;
 import br.com.ecociente.mobile.core.gateway.PostagemAnaliseGateway;
-import br.com.ecociente.mobile.dataprovider.entity.PostagemAnaliseEntity;
+import br.com.ecociente.mobile.dataprovider.entity.PostagemEntity;
 import br.com.ecociente.mobile.dataprovider.mapper.PostagemAnalisePersistenceMapper;
 import br.com.ecociente.mobile.dataprovider.repository.PostagemAnaliseRepository;
 
@@ -60,7 +60,7 @@ public class PostagemAnaliseGatewayImpl
     }
 
     var ids = entities.stream()
-        .map(PostagemAnaliseEntity::getId)
+        .map(PostagemEntity::getId)
         .toList();
 
     var complementos = repository.buscarDadosComplementares(ids)
