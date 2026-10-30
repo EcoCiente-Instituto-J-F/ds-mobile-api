@@ -73,6 +73,10 @@ import jakarta.persistence.EntityManagerFactory;
 })
 @Execution(ExecutionMode.SAME_THREAD)
 class CooperativaDetalheIntegrationTest {
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private br.com.ecociente.mobile.config.security.UsuarioDetailsService
+            usuarioDetailsServiceTeste;
+
 
   private static final String SECRET = "0123456789abcdef0123456789abcdef";
 
@@ -376,7 +380,10 @@ class CooperativaDetalheIntegrationTest {
           new HibernateJpaVendorAdapter());
 
       factory.setManagedTypes(PersistenceManagedTypes.of(
-          CooperativaEntity.class.getName()));
+          CooperativaEntity.class.getName(),
+          br.com.ecociente.mobile.dataprovider.entity.EnderecoEntity.class.getName(),
+          br.com.ecociente.mobile.dataprovider.entity.UsuarioEntity.class.getName(),
+          br.com.ecociente.mobile.dataprovider.entity.TipoUsuarioEntity.class.getName()));
 
       factory.setJpaPropertyMap(Map.of(
           "hibernate.hbm2ddl.auto", "none"));
