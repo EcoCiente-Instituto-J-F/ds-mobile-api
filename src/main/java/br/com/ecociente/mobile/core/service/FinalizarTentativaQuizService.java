@@ -260,9 +260,10 @@ public class FinalizarTentativaQuizService {
             "USUARIO_INATIVO_OU_INEXISTENTE",
             "Usuário não encontrado ou inativo"));
 
+    // Usuário comum/comercial e morador (residencial ou não); síndico, cooperativa e admin ficam de fora.
     if (!tipo.equals("comum")
-        && !tipo.equals("usuario comum")
-        && !tipo.equals("morador")) {
+        && !tipo.startsWith("usuario")
+        && !tipo.startsWith("morador")) {
       throw erro(
           Tipo.NAO_PERMITIDO,
           "QUIZ_PERFIL_NAO_PERMITIDO",
