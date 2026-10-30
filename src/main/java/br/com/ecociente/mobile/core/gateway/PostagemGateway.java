@@ -5,19 +5,17 @@ import java.util.List;
 import java.util.Optional;
 
 import br.com.ecociente.mobile.core.domain.CategoriaResiduo;
-import br.com.ecociente.mobile.core.domain.ContextoCondominialQuiz;
 import br.com.ecociente.mobile.core.domain.Postagem;
+import br.com.ecociente.mobile.core.domain.educacao.ContextoCondominialQuiz;
 
 public interface PostagemGateway {
 
-  /** Vínculo ativo e aprovado do usuário com o condomínio (com a torre dele, se houver). */
   Optional<ContextoCondominialQuiz> buscarVinculoAprovado(
       Integer usuarioId,
       Integer condominioId);
 
   boolean categoriaExiste(Integer categoriaId);
 
-  /** Categorias que o morador pode escolher ao registrar um descarte. */
   List<CategoriaResiduo> listarCategorias();
 
   boolean hashFotoJaUsado(String hashFoto);

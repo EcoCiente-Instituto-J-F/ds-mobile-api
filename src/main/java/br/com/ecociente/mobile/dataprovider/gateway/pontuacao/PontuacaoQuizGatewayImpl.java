@@ -1,71 +1,27 @@
 package br.com.ecociente.mobile.dataprovider.gateway.pontuacao;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Optional;
+
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
-import br.com.ecociente.mobile.core.domain.ResultadoPontuacaoQuiz;
-import br.com.ecociente.mobile.core.service.pontuacao.ConsolidarQuizInternoService;
-import br.com.ecociente.mobile.core.service.pontuacao.SincronizacaoPontuacaoService;
-import br.com.ecociente.mobile.core.gateway.PontuacaoQuizGateway;
+import br.com.ecociente.mobile.core.domain.pontuacao.Quiz;
+import br.com.ecociente.mobile.core.gateway.pontuacao.QuizGateway;
+import br.com.ecociente.mobile.dataprovider.mapper.pontuacao.PontuacaoQuizMapper;
+import br.com.ecociente.mobile.dataprovider.repository.QuizRepository;
+import lombok.RequiredArgsConstructor;
 
-@Component
-public class PontuacaoQuizGatewayImpl implements PontuacaoQuizGateway {
+@Component("quizConsultaPontuacaoGateway")
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class PontuacaoQuizGatewayImpl implements QuizGateway {
 
-  private static final Logger log = LoggerFactory.getLogger(PontuacaoQuizGatewayImpl.class);
+    private final QuizRepository repository;
+    private final PontuacaoQuizMapper mapper;
 
-  private final ConsolidarQuizInternoService consolidacao;
-  private final SincronizacaoPontuacaoService sincronizacao;
-
-  public PontuacaoQuizGatewayImpl(
-      ConsolidarQuizInternoService consolidacao,
-      SincronizacaoPontuacaoService sincronizacao) {
-    this.consolidacao = consolidacao;
-    this.sincronizacao = sincronizacao;
-  }
-
-  @Override
-  public ResultadoPontuacaoQuiz consolidar(
-      Integer tentativaId,
-      Integer usuarioId) {
-
-    final br.com.ecociente.mobile.core.domain.pontuacao.MovimentacaoPontos movimento;
-
-    try {
-      movimento = consolidacao.executar(tentativaId, usuarioId);
-    } catch (org.springframework.dao.DataAccessException exception) {
-      log.error(
-          "Falha ao consolidar pontuação da tentativa {}",
-          tentativaId,
-          exception);
-
-      return ResultadoPontuacaoQuiz.pendente();
-    } catch (br.com.ecociente.mobile.core.exception.pontuacao.DomainException exception) {
-      log.warn(
-          "Consolidação recusada para tentativa {}",
-          tentativaId,
-          exception);
-
-      return ResultadoPontuacaoQuiz.falha();
+    @Override
+    public Optional<Quiz> buscarPorId(Integer quizId) {
+        return repository.findById(quizId)
+                .map(mapper::toDomain);
     }
-
-    boolean sincronizado = Boolean.TRUE.equals(movimento.getRedisSincronizado());
-
-    if (!sincronizado) {
-      try {
-        sincronizado = sincronizacao.sincronizar(movimento.getId());
-      } catch (RuntimeException exception) {
-        log.warn(
-            "Pontos gravados; Redis pendente para movimentação {}",
-            movimento.getId(),
-            exception);
-      }
-    }
-
-    return new ResultadoPontuacaoQuiz(
-        ResultadoPontuacaoQuiz.Status.CONFIRMADO,
-        movimento.getPontos(),
-        movimento.getId(),
-        sincronizado);
-  }
 }

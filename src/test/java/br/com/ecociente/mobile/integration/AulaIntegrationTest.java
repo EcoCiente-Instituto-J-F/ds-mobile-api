@@ -28,16 +28,16 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import br.com.ecociente.mobile.core.service.AulaService;
-import br.com.ecociente.mobile.dataprovider.entity.AulaEntity;
-import br.com.ecociente.mobile.dataprovider.entity.CursoEntity;
-import br.com.ecociente.mobile.dataprovider.gateway.AulaGatewayImpl;
-import br.com.ecociente.mobile.dataprovider.gateway.CursoGatewayImpl;
-import br.com.ecociente.mobile.dataprovider.mapper.AulaEntityMapper;
-import br.com.ecociente.mobile.dataprovider.mapper.CursoEntityMapper;
-import br.com.ecociente.mobile.dataprovider.repository.AulaRepository;
-import br.com.ecociente.mobile.entrypoint.controller.AulaController;
-import br.com.ecociente.mobile.entrypoint.mapper.AulaMapper;
+import br.com.ecociente.mobile.core.service.educacao.AulaService;
+import br.com.ecociente.mobile.dataprovider.entity.educacao.AulaEntity;
+import br.com.ecociente.mobile.dataprovider.entity.educacao.CursoEntity;
+import br.com.ecociente.mobile.dataprovider.gateway.educacao.AulaGatewayImpl;
+import br.com.ecociente.mobile.dataprovider.gateway.educacao.CursoGatewayImpl;
+import br.com.ecociente.mobile.dataprovider.mapper.educacao.AulaEntityMapper;
+import br.com.ecociente.mobile.dataprovider.mapper.educacao.CursoEntityMapper;
+import br.com.ecociente.mobile.dataprovider.repository.educacao.AulaRepository;
+import br.com.ecociente.mobile.entrypoint.controller.educacao.AulaController;
+import br.com.ecociente.mobile.entrypoint.mapper.educacao.AulaMapper;
 
 @Tag("integracao")
 @Testcontainers

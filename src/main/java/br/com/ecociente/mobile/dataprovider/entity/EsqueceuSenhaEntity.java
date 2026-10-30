@@ -10,8 +10,7 @@ import lombok.Setter;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "tb_esqueci_senha")
-@Getter
+@Table(name = "tb_recuperacoes_senha")@Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor

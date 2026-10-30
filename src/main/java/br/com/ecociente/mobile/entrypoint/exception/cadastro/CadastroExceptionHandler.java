@@ -1,6 +1,5 @@
 package br.com.ecociente.mobile.entrypoint.exception.cadastro;
 
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +21,6 @@ import br.com.ecociente.mobile.core.exception.cadastro.NotFoundException;
 import br.com.ecociente.mobile.entrypoint.dto.cadastro.ErrorResponse;
 import br.com.ecociente.mobile.entrypoint.dto.cadastro.ValidationError;
 import br.com.ecociente.mobile.core.exception.cadastro.ConsultaDocumentoIndisponivelException;
-
 
 @ControllerAdvice(basePackages = "br.com.ecociente.mobile.entrypoint.controller.cadastro")
 public class CadastroExceptionHandler {
@@ -52,7 +50,8 @@ public class CadastroExceptionHandler {
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex, WebRequest request) {
+  public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex,
+      WebRequest request) {
     log.warn("Falha de validação: {}", ex.getMessage());
     List<ValidationError> details = ex.getBindingResult().getFieldErrors().stream()
         .map(error -> new ValidationError(error.getField(), error.getDefaultMessage()))
@@ -62,7 +61,8 @@ public class CadastroExceptionHandler {
   }
 
   @ExceptionHandler(HttpMessageNotReadableException.class)
-  public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex, WebRequest request) {
+  public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex,
+      WebRequest request) {
     log.warn("JSON malformado: {}", ex.getMessage());
     List<ValidationError> details = new ArrayList<>();
     details.add(new ValidationError("body", "JSON malformado ou impossível de ler"));
@@ -83,7 +83,7 @@ public class CadastroExceptionHandler {
   public ResponseEntity<ErrorResponse> handleAlreadyExists(AlreadyExistsException ex) {
     List<ValidationError> details = new ArrayList<>();
     details.add(new ValidationError(null, ex.getMessage()));
-    var response = createErrorResponse(HttpStatus.NOT_FOUND,ex.getCodigoErro(), details);
+    var response = createErrorResponse(HttpStatus.NOT_FOUND, ex.getCodigoErro(), details);
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
   }
 
@@ -91,7 +91,7 @@ public class CadastroExceptionHandler {
   public ResponseEntity<ErrorResponse> handleNotFound(NotFoundException ex) {
     List<ValidationError> details = new ArrayList<>();
     details.add(new ValidationError(null, ex.getMessage()));
-    var response = createErrorResponse(HttpStatus.NOT_FOUND,ex.getCodigoErro(), details);
+    var response = createErrorResponse(HttpStatus.NOT_FOUND, ex.getCodigoErro(), details);
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
   }
 
@@ -99,20 +99,17 @@ public class CadastroExceptionHandler {
   public ResponseEntity<ErrorResponse> handleCep(CepException ex) {
     List<ValidationError> details = new ArrayList<>();
     details.add(new ValidationError(null, ex.getMessage()));
-    var response = createErrorResponse(HttpStatus.BAD_REQUEST,ex.getCodigoErro(), details);
+    var response = createErrorResponse(HttpStatus.BAD_REQUEST, ex.getCodigoErro(), details);
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
   }
 
   @ExceptionHandler(ConsultaDocumentoIndisponivelException.class)
   public ResponseEntity<ErrorResponse> handleConsultaDocumento(
-    ConsultaDocumentoIndisponivelException ex
-  ) {
-      List<ValidationError> details = List.of(
+      ConsultaDocumentoIndisponivelException ex) {
+    List<ValidationError> details = List.of(
         new ValidationError(
             "documento",
-            ex.getMessage()
-        )
-    );
+            ex.getMessage()));
 
     return ResponseEntity
         .status(HttpStatus.SERVICE_UNAVAILABLE)
@@ -120,11 +117,20 @@ public class CadastroExceptionHandler {
             createErrorResponse(
                 HttpStatus.SERVICE_UNAVAILABLE,
                 ex.getCodigoErro(),
-                details
-            )
-        );
-}
+                details));
+  }
 
+  @ExceptionHandler(br.com.ecociente.mobile.core.exception.cadastro.AtualizacaoNaoPermitidaException.class)
+  public ResponseEntity<ErrorResponse> handleAtualizacaoNaoPermitida(
+      br.com.ecociente.mobile.core.exception.cadastro.AtualizacaoNaoPermitidaException exception) {
 
+    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+        .body(createErrorResponse(
+            HttpStatus.FORBIDDEN,
+            exception.getCodigoErro(),
+            List.of(new ValidationError(
+                null,
+                exception.getMessage()))));
+  }
 
 }

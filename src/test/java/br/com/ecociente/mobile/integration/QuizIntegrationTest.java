@@ -40,13 +40,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.ecociente.mobile.config.security.JwtService;
 import br.com.ecociente.mobile.config.security.SecurityConfig;
-import br.com.ecociente.mobile.core.service.QuizService;
+import br.com.ecociente.mobile.core.service.educacao.QuizService;
 import br.com.ecociente.mobile.dataprovider.entity.QuizEntity;
-import br.com.ecociente.mobile.dataprovider.gateway.QuizGatewayImpl;
-import br.com.ecociente.mobile.dataprovider.mapper.QuizEntityMapper;
+import br.com.ecociente.mobile.dataprovider.gateway.educacao.QuizGatewayImpl;
+import br.com.ecociente.mobile.dataprovider.mapper.educacao.QuizEntityMapper;
 import br.com.ecociente.mobile.dataprovider.repository.QuizRepository;
-import br.com.ecociente.mobile.entrypoint.controller.QuizController;
-import br.com.ecociente.mobile.entrypoint.mapper.QuizMapper;
+import br.com.ecociente.mobile.entrypoint.controller.educacao.QuizController;
+import br.com.ecociente.mobile.entrypoint.mapper.educacao.QuizMapper;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

@@ -12,8 +12,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import br.com.ecociente.mobile.core.domain.Curso;
-import br.com.ecociente.mobile.core.gateway.CursoGateway;
+import br.com.ecociente.mobile.core.domain.educacao.Curso;
+import br.com.ecociente.mobile.core.gateway.educacao.CursoGateway;
+import br.com.ecociente.mobile.core.service.educacao.CursoService;
 
 @ExtendWith(MockitoExtension.class)
 class CursoServiceTest {

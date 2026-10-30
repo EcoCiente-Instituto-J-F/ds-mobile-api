@@ -20,10 +20,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import br.com.ecociente.mobile.core.domain.ResumoTentativaQuiz;
-import br.com.ecociente.mobile.core.exception.FluxoQuizException;
-import br.com.ecociente.mobile.core.exception.FluxoQuizException.Tipo;
-import br.com.ecociente.mobile.core.gateway.TentativaQuizGateway;
+import br.com.ecociente.mobile.core.domain.educacao.ResumoTentativaQuiz;
+import br.com.ecociente.mobile.core.exception.AvaliacaoColetaException.Tipo;
+import br.com.ecociente.mobile.core.exception.educacao.FluxoQuizException;
+import br.com.ecociente.mobile.core.gateway.educacao.TentativaQuizGateway;
+import br.com.ecociente.mobile.core.service.educacao.ConsultarRevisaoQuizService;
+
 
 @ExtendWith(MockitoExtension.class)
 class ConsultarRevisaoQuizServiceTest {
