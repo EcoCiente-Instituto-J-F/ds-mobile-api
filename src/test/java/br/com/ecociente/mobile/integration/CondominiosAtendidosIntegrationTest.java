@@ -60,6 +60,10 @@ import io.jsonwebtoken.security.Keys;
 })
 @Execution(ExecutionMode.SAME_THREAD)
 class CondominiosAtendidosIntegrationTest {
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private br.com.ecociente.mobile.config.security.UsuarioDetailsService
+            usuarioDetailsServiceTeste;
+
 
   private static final String SECRET = "0123456789abcdef0123456789abcdef";
 

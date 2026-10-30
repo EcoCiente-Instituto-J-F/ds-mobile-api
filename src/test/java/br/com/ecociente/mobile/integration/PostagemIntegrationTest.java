@@ -73,6 +73,14 @@ import io.jsonwebtoken.security.Keys;
 })
 @Execution(ExecutionMode.SAME_THREAD)
 class PostagemIntegrationTest {
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private br.com.ecociente.mobile.core.service.validador.TriagemPostagemService
+            triagemSimulada;
+
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private br.com.ecociente.mobile.config.security.UsuarioDetailsService
+            usuarioDetailsServiceTeste;
+
 
   private static final String SECRET = "0123456789abcdef0123456789abcdef";
 
@@ -92,6 +100,23 @@ class PostagemIntegrationTest {
 
   @BeforeEach
   void preparar() throws Exception {
+    // Configura a triagem simulada dos endpoints.
+    org.mockito.Mockito.when(
+        triagemSimulada.triar(org.mockito.ArgumentMatchers.anyInt())
+    ).thenReturn(
+        new br.com.ecociente.mobile.core.domain.validador.VeredictoFoto(
+            br.com.ecociente.mobile.core.domain.validador.StatusTriagem.OK,
+            true,
+            "plastico",
+            "plastico",
+            0.99,
+            "hash-simulado",
+            java.util.List.of(),
+            java.util.List.of(),
+            "Triagem simulada para o teste de endpoints"
+        )
+    );
+
     Config.USUARIO_RECEBIDO.set(null);
     try (Connection connection = dataSource.getConnection();
         Statement statement = connection.createStatement()) {
@@ -465,6 +490,7 @@ class PostagemIntegrationTest {
       SecurityConfig.class,
       JwtService.class,
       CriarPostagemService.class,
+      br.com.ecociente.mobile.core.service.CriarPostagemComTriagemService.class,
       ConsultarPostagensCondominioService.class,
       ConsultarPostagensUsuarioService.class,
       ConsultarCategoriasResiduoService.class,

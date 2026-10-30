@@ -73,6 +73,9 @@ import io.jsonwebtoken.security.Keys;
 @AutoConfigureMockMvc
 @Execution(ExecutionMode.SAME_THREAD)
 @SpringBootTest(classes = TentativaQuizIntegrationTest.Config.class, properties = {
+    "spring.mail.host=localhost",
+    "spring.data.redis.host=localhost",
+    "spring.data.redis.port=6379",
     "spring.jpa.hibernate.ddl-auto=none",
     "spring.jpa.open-in-view=false",
     "spring.sql.init.mode=never",
@@ -81,6 +84,18 @@ import io.jsonwebtoken.security.Keys;
     "app.security.jwt.secret=0123456789abcdef0123456789abcdef"
 })
 class TentativaQuizIntegrationTest {
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private br.com.ecociente.mobile.config.security.UsuarioDetailsService
+            usuarioDetailsServiceTeste;
+
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private br.com.ecociente.mobile.core.service.pontuacao.ConsolidarQuizInternoService
+            consolidacaoInternaSimulada;
+
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private br.com.ecociente.mobile.core.service.pontuacao.SincronizacaoPontuacaoService
+            sincronizacaoRedisSimulada;
+
 
   private static final String SECRET = "0123456789abcdef0123456789abcdef";
 
@@ -106,9 +121,7 @@ class TentativaQuizIntegrationTest {
 
   private static final AtomicReference<JdbcTemplate> banco = new AtomicReference<>();
 
-  private static final AtomicReference<String> chave = new AtomicReference<>();
 
-  private static final HttpServer HTTP = iniciarHttp();
 
   @Autowired
   MockMvc mvc;
@@ -124,24 +137,11 @@ class TentativaQuizIntegrationTest {
 
   @DynamicPropertySource
   static void propriedades(DynamicPropertyRegistry registry) {
-    registry.add(
-        "spring.datasource.url", POSTGRES::getJdbcUrl);
-    registry.add(
-        "spring.datasource.username", POSTGRES::getUsername);
-    registry.add(
-        "spring.datasource.password", POSTGRES::getPassword);
-    registry.add(
-        "app.integracoes.pontuacao.base-url",
-        () -> "http://127.0.0.1:" + HTTP.getAddress().getPort());
-    registry.add(
-        "app.integracoes.pontuacao.token-servico",
-        () -> "credencial-simulada");
+    registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
+    registry.add("spring.datasource.username", POSTGRES::getUsername);
+    registry.add("spring.datasource.password", POSTGRES::getPassword);
   }
 
-  @AfterAll
-  static void encerrarHttp() {
-    HTTP.stop(0);
-  }
 
   @BeforeEach
   void preparar() throws Exception {
@@ -162,8 +162,60 @@ class TentativaQuizIntegrationTest {
     usuarioPontuacao.set(10);
     chamadas.set(0);
     viuCommit.set(false);
-    chave.set(null);
     banco.set(jdbc);
+
+    // Configura a consolidação interna simulada.
+    org.mockito.Mockito.when(
+        consolidacaoInternaSimulada.executar(
+            org.mockito.ArgumentMatchers.anyInt(),
+            org.mockito.ArgumentMatchers.anyInt()
+        )
+    ).thenAnswer(invocacao -> {
+      Integer tentativaId = invocacao.getArgument(0);
+      Integer usuarioId = invocacao.getArgument(1);
+
+      chamadas.incrementAndGet();
+
+      assertFalse(
+          org.springframework.transaction.support.TransactionSynchronizationManager
+              .isActualTransactionActive(),
+          "A consolidação deve ser chamada após o commit da tentativa"
+      );
+
+      Boolean concluida = jdbc.queryForObject(
+          """
+          SELECT concluido_em IS NOT NULL
+          FROM tb_tentativas_quiz
+          WHERE id_tentativa = ?
+          """,
+          Boolean.class,
+          tentativaId
+      );
+
+      viuCommit.set(Boolean.TRUE.equals(concluida));
+
+      if (statusPontuacao.get() != 200) {
+        throw new org.springframework.dao.DataAccessResourceFailureException(
+            "Falha simulada na consolidação"
+        );
+      }
+
+      return br.com.ecociente.mobile.core.domain.pontuacao.MovimentacaoPontos
+          .builder()
+          .id(999L)
+          .usuarioId(usuarioId)
+          .tentativaQuizId(tentativaId)
+          .origemTipo(
+              br.com.ecociente.mobile.core.domain.pontuacao.OrigemPontuacaoType.QUIZ
+          )
+          .tipoMovimentacao(
+              br.com.ecociente.mobile.core.domain.pontuacao.TipoMovimentacaoType.CREDITO
+          )
+          .pontos(30)
+          .redisSincronizado(false)
+          .build();
+    });
+
   }
 
   @Test
@@ -201,7 +253,6 @@ class TentativaQuizIntegrationTest {
     assertTrue(
         viuCommit.get(),
         "A pontuação deve enxergar a tentativa já concluída");
-    assertEquals("quiz-tentativa-" + id, chave.get());
     assertEquals(2L, contarRespostas(id));
 
     assertEquals(
@@ -294,7 +345,6 @@ class TentativaQuizIntegrationTest {
 
     assertEquals(2L, contarRespostas(id));
     assertEquals(2, chamadas.get());
-    assertEquals("quiz-tentativa-" + id, chave.get());
   }
 
   @Test
@@ -636,71 +686,7 @@ class TentativaQuizIntegrationTest {
     }
   }
 
-  private static HttpServer iniciarHttp() {
-    try {
-      var servidor = HttpServer.create(
-          new InetSocketAddress("127.0.0.1", 0), 0);
-
-      servidor.createContext("/", exchange -> {
-        chamadas.incrementAndGet();
-        chave.set(exchange.getRequestHeaders()
-            .getFirst("Idempotency-Key"));
-
-        String[] partes = exchange.getRequestURI()
-            .getPath().split("/");
-
-        int id = Integer.parseInt(
-            partes[partes.length - 2]);
-
-        Boolean concluida = banco.get()
-            .queryForObject("""
-                SELECT concluido_em IS NOT NULL
-                FROM tb_tentativas_quiz
-                WHERE id_tentativa = ?
-                """, Boolean.class, id);
-
-        viuCommit.set(Boolean.TRUE.equals(concluida));
-
-        int status = statusPontuacao.get();
-
-        String resposta = status == 200
-            ? """
-                {
-                  "origemTipo":"QUIZ",
-                  "tentativaId":%d,
-                  "usuarioId":%d,
-                  "pontosConcedidos":30,
-                  "tipoMovimentacao":"CREDITO",
-                  "movimentacaoId":999,
-                  "redis":{
-                    "sincronizado":false,
-                    "status":"PENDENTE"
-                  }
-                }
-                """.formatted(id, usuarioPontuacao.get())
-            : "{\"erro\":\"indisponivel\"}";
-
-        byte[] bytes = resposta.getBytes(
-            StandardCharsets.UTF_8);
-
-        exchange.getRequestBody().readAllBytes();
-        exchange.getResponseHeaders().set(
-            "Content-Type", "application/json");
-        exchange.sendResponseHeaders(
-            status, bytes.length);
-
-        try (var output = exchange.getResponseBody()) {
-          output.write(bytes);
-        }
-      });
-
-      servidor.start();
-      return servidor;
-
-    } catch (IOException exception) {
-      throw new UncheckedIOException(exception);
-    }
-  }
+  
 
   @SpringBootConfiguration
   @EnableAutoConfiguration
