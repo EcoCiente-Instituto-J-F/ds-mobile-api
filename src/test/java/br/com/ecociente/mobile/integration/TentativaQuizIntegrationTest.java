@@ -432,6 +432,124 @@ class TentativaQuizIntegrationTest {
         .andExpect(status().isUnauthorized());
   }
 
+  @Test
+  void deveExigirJwtNasConsultasDeHistorico() throws Exception {
+    mvc.perform(get("/api/tentativas-quiz"))
+        .andExpect(status().isUnauthorized());
+
+    mvc.perform(get("/api/tentativas-quiz/quizzes-concluidos"))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void deveRejeitarUsuarioInativoNasConsultasDeHistorico() throws Exception {
+    jdbc.update("UPDATE tb_usuarios SET ativo = FALSE WHERE id_usuario = 10");
+
+    historico(10, "").andExpect(status().isForbidden());
+    historico(10, "/quizzes-concluidos").andExpect(status().isForbidden());
+  }
+
+  @Test
+  void historicoVazioDeveRetornarListaVazia() throws Exception {
+    historico(10, "")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(0));
+
+    historico(10, "/quizzes-concluidos")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(0));
+  }
+
+  @Test
+  void historicoDeveTrazerReprovadoEmOrdemDecrescente() throws Exception {
+    int primeira = iniciar(10);
+    finalizar(primeira, 10, CORRETAS).andExpect(status().isOk());
+
+    int segunda = iniciar(10);
+    finalizar(segunda, 10, """
+        {
+          "respostas":[
+            {"perguntaId":1,"alternativaId":10},
+            {"perguntaId":2,"alternativaId":21}
+          ]
+        }
+        """).andExpect(status().isOk());
+
+    historico(10, "")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(2))
+        .andExpect(jsonPath("$[0].tentativaId").value(segunda))
+        .andExpect(jsonPath("$[0].quizId").value(100))
+        .andExpect(jsonPath("$[0].titulo").value("Quiz Um"))
+        .andExpect(jsonPath("$[0].nota").value(50))
+        .andExpect(jsonPath("$[0].aprovado").value(false))
+        .andExpect(jsonPath("$[0].concluidoEm").isNotEmpty())
+        .andExpect(jsonPath("$[1].tentativaId").value(primeira))
+        .andExpect(jsonPath("$[1].nota").value(100))
+        .andExpect(jsonPath("$[1].aprovado").value(true));
+  }
+
+  @Test
+  void historicoNaoDeveIncluirTentativaEmAndamento() throws Exception {
+    iniciar(10);
+
+    historico(10, "").andExpect(jsonPath("$.length()").value(0));
+    historico(10, "/quizzes-concluidos").andExpect(jsonPath("$.length()").value(0));
+  }
+
+  @Test
+  void historicoDeveRespeitarOLimiteERejeitarValoresInvalidos() throws Exception {
+    finalizar(iniciar(10), 10, CORRETAS).andExpect(status().isOk());
+    finalizar(iniciar(10), 10, CORRETAS).andExpect(status().isOk());
+
+    historico(10, "?limite=1").andExpect(jsonPath("$.length()").value(1));
+
+    for (String invalido : new String[] {"-1", "0", "51"}) {
+      String corpo = historico(10, "?limite=" + invalido)
+          .andExpect(status().isBadRequest())
+          .andReturn()
+          .getResponse()
+          .getContentAsString();
+
+      assertTrue(corpo.contains("LIMITE_INVALIDO"), corpo);
+    }
+  }
+
+  @Test
+  void historicoNaoDeveExporTentativasDeOutroUsuario() throws Exception {
+    finalizar(iniciar(10), 10, CORRETAS).andExpect(status().isOk());
+
+    historico(30, "").andExpect(jsonPath("$.length()").value(0));
+    historico(30, "/quizzes-concluidos").andExpect(jsonPath("$.length()").value(0));
+  }
+
+  @Test
+  void quizzesConcluidosDeveListarCadaQuizUmaVezIncluindoReprovado() throws Exception {
+    finalizar(iniciar(10), 10, CORRETAS).andExpect(status().isOk());
+    finalizar(iniciar(10), 10, """
+        {
+          "respostas":[
+            {"perguntaId":1,"alternativaId":10},
+            {"perguntaId":2,"alternativaId":21}
+          ]
+        }
+        """).andExpect(status().isOk());
+
+    historico(10, "/quizzes-concluidos")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(1))
+        .andExpect(jsonPath("$[0]").value(100));
+  }
+
+  private org.springframework.test.web.servlet.ResultActions historico(
+      int usuario,
+      String consulta) throws Exception {
+
+    return mvc.perform(
+        get("/api/tentativas-quiz" + consulta)
+            .header("Authorization", bearer(usuario)));
+  }
+
   private int iniciar(int usuario) throws Exception {
     String resposta = mvc.perform(
         post("/api/quizzes/100/tentativas")

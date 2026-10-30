@@ -9,6 +9,7 @@ import br.com.ecociente.mobile.core.domain.ContextoCondominialQuiz;
 import br.com.ecociente.mobile.core.domain.ItemRevisaoQuiz;
 import br.com.ecociente.mobile.core.domain.RegistroTentativaQuiz;
 import br.com.ecociente.mobile.core.domain.RespostaQuizRegistrada;
+import br.com.ecociente.mobile.core.domain.ResumoTentativaQuiz;
 import br.com.ecociente.mobile.core.domain.TentativaQuizEstado;
 
 public interface TentativaQuizGateway {
@@ -47,4 +48,11 @@ public interface TentativaQuizGateway {
 
   List<ItemRevisaoQuiz> buscarItensRevisao(
       Integer tentativaId);
+
+  List<ResumoTentativaQuiz> listarConcluidas(
+      Integer usuarioId,
+      int limite);
+
+  List<Integer> listarQuizzesConcluidos(
+      Integer usuarioId);
 }

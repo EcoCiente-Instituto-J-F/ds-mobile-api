@@ -1,5 +1,7 @@
 package br.com.ecociente.mobile.entrypoint.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -10,6 +12,7 @@ import br.com.ecociente.mobile.core.service.FinalizarQuizComPontuacaoService;
 import br.com.ecociente.mobile.core.service.IniciarTentativaQuizService;
 import br.com.ecociente.mobile.entrypoint.dto.request.FinalizarTentativaQuizRequestDto;
 import br.com.ecociente.mobile.entrypoint.dto.response.ResultadoTentativaQuizResponseDto;
+import br.com.ecociente.mobile.entrypoint.dto.response.ResumoTentativaQuizResponseDto;
 import br.com.ecociente.mobile.entrypoint.dto.response.RevisaoTentativaQuizResponseDto;
 import br.com.ecociente.mobile.entrypoint.dto.response.TentativaQuizIniciadaResponseDto;
 import br.com.ecociente.mobile.entrypoint.mapper.TentativaQuizMapper;
@@ -71,5 +74,28 @@ public class TentativaQuizController {
 
     return ResponseEntity.ok(
         mapper.toResponse(revisao));
+  }
+
+  @GetMapping("/api/tentativas-quiz")
+  public ResponseEntity<List<ResumoTentativaQuizResponseDto>> historico(
+      @AuthenticationPrincipal Integer usuarioId,
+      @RequestParam(name = "limite", defaultValue = "20") int limite) {
+
+    var historico = revisaoService.historico(
+        usuarioId,
+        limite);
+
+    return ResponseEntity.ok(
+        historico.stream()
+            .map(item -> mapper.toResponse(item))
+            .toList());
+  }
+
+  @GetMapping("/api/tentativas-quiz/quizzes-concluidos")
+  public ResponseEntity<List<Integer>> quizzesConcluidos(
+      @AuthenticationPrincipal Integer usuarioId) {
+
+    return ResponseEntity.ok(
+        revisaoService.quizzesConcluidos(usuarioId));
   }
 }

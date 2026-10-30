@@ -18,6 +18,7 @@ import br.com.ecociente.mobile.core.domain.ContextoCondominialQuiz;
 import br.com.ecociente.mobile.core.domain.ItemRevisaoQuiz;
 import br.com.ecociente.mobile.core.domain.RegistroTentativaQuiz;
 import br.com.ecociente.mobile.core.domain.RespostaQuizRegistrada;
+import br.com.ecociente.mobile.core.domain.ResumoTentativaQuiz;
 import br.com.ecociente.mobile.core.domain.TentativaQuizEstado;
 import br.com.ecociente.mobile.core.exception.FluxoQuizException;
 import br.com.ecociente.mobile.core.gateway.TentativaQuizGateway;
@@ -309,5 +310,51 @@ public class TentativaQuizGatewayImpl implements TentativaQuizGateway {
         rs.getBigDecimal("nota"),
         rs.getBoolean("aprovado"),
         rs.getObject("concluido_em", OffsetDateTime.class));
+  }
+
+  @Override
+  public List<ResumoTentativaQuiz> listarConcluidas(
+      Integer usuarioId,
+      int limite) {
+    return jdbc.query("""
+        SELECT t.id_tentativa,
+               t.quiz_id,
+               q.titulo_quiz,
+               t.nota,
+               t.aprovado,
+               t.concluido_em
+        FROM tb_tentativas_quiz t
+        JOIN tb_quizzes q
+          ON q.id_quiz = t.quiz_id
+        WHERE t.usuario_id = ?
+          AND t.concluido_em IS NOT NULL
+          AND t.nota IS NOT NULL
+        ORDER BY t.concluido_em DESC, t.id_tentativa DESC
+        LIMIT ?
+        """,
+        (rs, rowNum) -> new ResumoTentativaQuiz(
+            rs.getInt("id_tentativa"),
+            rs.getInt("quiz_id"),
+            rs.getString("titulo_quiz"),
+            rs.getBigDecimal("nota"),
+            rs.getBoolean("aprovado"),
+            rs.getObject("concluido_em", OffsetDateTime.class)),
+        usuarioId,
+        limite);
+  }
+
+  @Override
+  public List<Integer> listarQuizzesConcluidos(
+      Integer usuarioId) {
+    return jdbc.queryForList("""
+        SELECT DISTINCT quiz_id
+        FROM tb_tentativas_quiz
+        WHERE usuario_id = ?
+          AND concluido_em IS NOT NULL
+          AND nota IS NOT NULL
+        ORDER BY quiz_id
+        """,
+        Integer.class,
+        usuarioId);
   }
 }

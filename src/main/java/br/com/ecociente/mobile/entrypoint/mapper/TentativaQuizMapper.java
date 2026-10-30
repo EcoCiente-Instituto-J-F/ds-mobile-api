@@ -7,10 +7,12 @@ import org.springframework.stereotype.Component;
 import br.com.ecociente.mobile.core.domain.RespostaQuiz;
 import br.com.ecociente.mobile.core.domain.ResultadoFinalizacaoQuiz;
 import br.com.ecociente.mobile.core.domain.RevisaoTentativaQuiz;
+import br.com.ecociente.mobile.core.domain.ResumoTentativaQuiz;
 import br.com.ecociente.mobile.core.domain.TentativaQuizIniciada;
 import br.com.ecociente.mobile.entrypoint.dto.request.FinalizarTentativaQuizRequestDto;
 import br.com.ecociente.mobile.entrypoint.dto.response.ResultadoTentativaQuizResponseDto;
 import br.com.ecociente.mobile.entrypoint.dto.response.ResultadoTentativaQuizResponseDto.PontuacaoResponseDto;
+import br.com.ecociente.mobile.entrypoint.dto.response.ResumoTentativaQuizResponseDto;
 import br.com.ecociente.mobile.entrypoint.dto.response.RevisaoTentativaQuizResponseDto;
 import br.com.ecociente.mobile.entrypoint.dto.response.RevisaoTentativaQuizResponseDto.AlternativaRevisaoResponseDto;
 import br.com.ecociente.mobile.entrypoint.dto.response.RevisaoTentativaQuizResponseDto.PerguntaRevisaoResponseDto;
@@ -91,5 +93,16 @@ public class TentativaQuizMapper {
                 resultado.concluidoEm(),
                 true,
                 perguntas);
+    }
+
+    public ResumoTentativaQuizResponseDto toResponse(
+            ResumoTentativaQuiz resumo) {
+        return new ResumoTentativaQuizResponseDto(
+                resumo.tentativaId(),
+                resumo.quizId(),
+                resumo.titulo(),
+                resumo.nota(),
+                resumo.aprovado(),
+                resumo.concluidoEm());
     }
 }

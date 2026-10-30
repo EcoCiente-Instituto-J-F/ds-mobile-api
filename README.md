@@ -27,6 +27,7 @@ Funcionalidades atuais:
 | Cursos | `GET /api/cursos`, `GET /api/cursos/{cursoId}` | Usuário autenticado |
 | Aulas | `GET /api/cursos/{cursoId}/aulas`, `GET /api/aulas/{aulaId}` | Usuário autenticado |
 | Quizzes | `GET /api/aulas/{aulaId}/quiz`, `POST /api/quizzes/{id}/tentativas`, `POST /api/tentativas-quiz/{id}/finalizar`, `GET /api/tentativas-quiz/{id}/revisao` | Usuário autenticado |
+| Histórico de quizzes | `GET /api/tentativas-quiz?limite=20`, `GET /api/tentativas-quiz/quizzes-concluidos` | Usuário autenticado (só as próprias tentativas) |
 | Postagens de descarte | `POST /api/postagens`, `GET /api/postagens`, `POST /api/postagens/{id}/votos` | Morador com vínculo aprovado no condomínio |
 | Minhas postagens | `GET /api/postagens/minhas` | Usuário autenticado (só as próprias) |
 | Categorias de resíduo | `GET /api/categorias-residuos` | Usuário autenticado |
@@ -36,6 +37,8 @@ Funcionalidades atuais:
 | Avaliação de coleta | `POST /api/agendamentos/{id}/avaliacao` | Síndico do condomínio do agendamento |
 | Dashboard do síndico | `GET /api/condominios/{id}/dashboard` | Síndico responsável pelo condomínio |
 
+- **Histórico de quizzes:** `GET /api/tentativas-quiz` devolve as tentativas concluídas do usuário autenticado, da mais recente para a mais antiga, com `tentativaId`, `quizId`, `titulo`, `nota` (0 a 100), `aprovado` e `concluidoEm`. `limite` é opcional (padrão 20, de 1 a 50; fora disso, 400 `LIMITE_INVALIDO`). Tentativas em andamento não entram, e reprovadas entram. Sem resultados, devolve `[]`.
+- **Quizzes concluídos:** `GET /api/tentativas-quiz/quizzes-concluidos` devolve os ids distintos de todos os quizzes que o usuário já concluiu (aprovado ou não), sem o limite do histórico, por exemplo `[12, 18, 25]`. Sem conclusões, devolve `[]`.
 - **Cooperativas próximas:** lista as cooperativas da mesma cidade e estado dos condomínios do síndico. O banco não guarda coordenadas, então não há cálculo de distância.
 - **Avaliação de coleta:** só vale para coleta realizada e aceita uma avaliação por visita. A nota entra na média da cooperativa.
 - **Dashboard do síndico:** lido da view `vw_dashboard_sindico`.
