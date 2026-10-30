@@ -126,6 +126,29 @@ class FinalizarTentativaQuizServiceTest {
     }
 
     @Test
+    void moradorResidencialEUsuarioComercialPodemFinalizar() {
+        for (String tipo : List.of("Morador Residencial", "Usuário Comercial")) {
+            when(tentativas.buscarTipoUsuarioAtivo(10))
+                    .thenReturn(Optional.of(tipo));
+
+            assertDoesNotThrow(() -> service.executar(10, 1000, corretas()));
+        }
+    }
+
+    @Test
+    void sindicoCooperativaEAdminNaoPodemFinalizar() {
+        for (String tipo : List.of("Síndico Residencial", "Cooperativa", "Administrador", "admin")) {
+            when(tentativas.buscarTipoUsuarioAtivo(10))
+                    .thenReturn(Optional.of(tipo));
+
+            var erro = assertThrows(FluxoQuizException.class,
+                    () -> service.executar(10, 1000, corretas()));
+
+            assertEquals("QUIZ_PERFIL_NAO_PERMITIDO", erro.getCodigo());
+        }
+    }
+
+    @Test
     void usuarioComumNaoDeveReceberContextoCondominial() {
         service.executar(10, 1000, corretas());
 
