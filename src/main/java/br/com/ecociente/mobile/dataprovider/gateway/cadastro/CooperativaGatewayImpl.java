@@ -8,7 +8,7 @@ import br.com.ecociente.mobile.dataprovider.entity.CooperativaEntity;
 import br.com.ecociente.mobile.dataprovider.mapper.cadastro.CooperativaPersistenceMapper;
 import br.com.ecociente.mobile.dataprovider.repository.CooperativaRepository;
 
-@Component 
+@Component("cooperativaCadastroGateway")
 public class CooperativaGatewayImpl implements CooperativaGateway {
 
   private final CooperativaRepository cooperativaRepository;

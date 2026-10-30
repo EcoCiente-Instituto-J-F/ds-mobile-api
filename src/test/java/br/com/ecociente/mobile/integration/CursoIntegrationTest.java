@@ -27,13 +27,13 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import br.com.ecociente.mobile.core.service.CursoService;
-import br.com.ecociente.mobile.dataprovider.entity.CursoEntity;
-import br.com.ecociente.mobile.dataprovider.gateway.CursoGatewayImpl;
-import br.com.ecociente.mobile.dataprovider.mapper.CursoEntityMapper;
-import br.com.ecociente.mobile.dataprovider.repository.CursoRepository;
-import br.com.ecociente.mobile.entrypoint.controller.CursoController;
-import br.com.ecociente.mobile.entrypoint.mapper.CursoMapper;
+import br.com.ecociente.mobile.core.service.educacao.CursoService;
+import br.com.ecociente.mobile.dataprovider.entity.educacao.CursoEntity;
+import br.com.ecociente.mobile.dataprovider.gateway.educacao.CursoGatewayImpl;
+import br.com.ecociente.mobile.dataprovider.mapper.educacao.CursoEntityMapper;
+import br.com.ecociente.mobile.dataprovider.repository.educacao.CursoRepository;
+import br.com.ecociente.mobile.entrypoint.controller.educacao.CursoController;
+import br.com.ecociente.mobile.entrypoint.mapper.educacao.CursoMapper;
 
 @Tag("integracao")
 @Testcontainers

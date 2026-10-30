@@ -1,5 +1,13 @@
 package br.com.ecociente.mobile.integration;
 
+import br.com.ecociente.mobile.dataprovider.gateway.educacao.QuizGatewayImpl;
+import br.com.ecociente.mobile.dataprovider.gateway.educacao.TentativaQuizGatewayImpl;
+import br.com.ecociente.mobile.dataprovider.gateway.educacao.PontuacaoQuizGatewayImpl;
+import br.com.ecociente.mobile.core.service.educacao.IniciarTentativaQuizService;
+import br.com.ecociente.mobile.core.service.educacao.FinalizarTentativaQuizService;
+import br.com.ecociente.mobile.core.service.educacao.FinalizarQuizComPontuacaoService;
+import br.com.ecociente.mobile.core.service.educacao.ConsultarRevisaoQuizService;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -52,11 +60,11 @@ import br.com.ecociente.mobile.config.security.JwtService;
 import br.com.ecociente.mobile.config.security.SecurityConfig;
 import br.com.ecociente.mobile.core.service.*;
 import br.com.ecociente.mobile.dataprovider.gateway.*;
-import br.com.ecociente.mobile.dataprovider.mapper.QuizEntityMapper;
-import br.com.ecociente.mobile.entrypoint.controller.TentativaQuizController;
-import br.com.ecociente.mobile.entrypoint.exception.FluxoQuizExceptionHandler;
-import br.com.ecociente.mobile.entrypoint.mapper.QuizMapper;
-import br.com.ecociente.mobile.entrypoint.mapper.TentativaQuizMapper;
+import br.com.ecociente.mobile.dataprovider.mapper.educacao.QuizEntityMapper;
+import br.com.ecociente.mobile.entrypoint.controller.educacao.TentativaQuizController;
+import br.com.ecociente.mobile.entrypoint.exception.educacao.FluxoQuizExceptionHandler;
+import br.com.ecociente.mobile.entrypoint.mapper.educacao.QuizMapper;
+import br.com.ecociente.mobile.entrypoint.mapper.educacao.TentativaQuizMapper;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

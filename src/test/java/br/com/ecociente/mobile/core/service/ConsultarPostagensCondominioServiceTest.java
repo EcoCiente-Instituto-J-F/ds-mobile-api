@@ -14,7 +14,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.dao.DuplicateKeyException;
 
-import br.com.ecociente.mobile.core.domain.ContextoCondominialQuiz;
+import br.com.ecociente.mobile.core.domain.educacao.ContextoCondominialQuiz;
 import br.com.ecociente.mobile.core.domain.Postagem;
 import br.com.ecociente.mobile.core.exception.PostagemException;
 import br.com.ecociente.mobile.core.exception.PostagemException.Tipo;

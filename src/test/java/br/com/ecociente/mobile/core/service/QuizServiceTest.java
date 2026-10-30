@@ -13,8 +13,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import br.com.ecociente.mobile.core.domain.Quiz;
-import br.com.ecociente.mobile.core.gateway.QuizGateway;
+import br.com.ecociente.mobile.core.domain.educacao.Quiz;
+import br.com.ecociente.mobile.core.gateway.educacao.QuizGateway;
+import br.com.ecociente.mobile.core.service.educacao.QuizService;
 
 @ExtendWith(MockitoExtension.class)
 class QuizServiceTest {
@@ -28,17 +29,16 @@ class QuizServiceTest {
     @Test
     void deveRetornarQuizDisponivelPreservandoEscalaDoDominio() {
         Quiz quiz = new Quiz(
-            100,
-            1,
-            10,
-            "Quiz de reciclagem",
-            new BigDecimal("70.00"),
-            30,
-            List.of()
-        );
+                100,
+                1,
+                10,
+                "Quiz de reciclagem",
+                new BigDecimal("70.00"),
+                30,
+                List.of());
 
         when(gateway.buscarQuizDisponivelPorAulaId(10))
-            .thenReturn(Optional.of(quiz));
+                .thenReturn(Optional.of(quiz));
 
         assertEquals(Optional.of(quiz), service.buscarQuizDaAula(10));
 
@@ -48,7 +48,7 @@ class QuizServiceTest {
     @Test
     void deveRetornarOptionalVazioParaQuizIndisponivel() {
         when(gateway.buscarQuizDisponivelPorAulaId(11))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
 
         assertTrue(service.buscarQuizDaAula(11).isEmpty());
     }
@@ -60,11 +60,9 @@ class QuizServiceTest {
         when(gateway.buscarQuizDisponivelPorAulaId(10)).thenThrow(falha);
 
         assertSame(
-            falha,
-            assertThrows(
-                RuntimeException.class,
-                () -> service.buscarQuizDaAula(10)
-            )
-        );
+                falha,
+                assertThrows(
+                        RuntimeException.class,
+                        () -> service.buscarQuizDaAula(10)));
     }
 }

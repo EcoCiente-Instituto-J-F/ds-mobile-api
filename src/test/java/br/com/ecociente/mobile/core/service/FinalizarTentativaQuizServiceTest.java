@@ -13,9 +13,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import br.com.ecociente.mobile.core.domain.*;
-import br.com.ecociente.mobile.core.exception.FluxoQuizException;
-import br.com.ecociente.mobile.core.gateway.QuizGateway;
-import br.com.ecociente.mobile.core.gateway.TentativaQuizGateway;
+import br.com.ecociente.mobile.core.domain.educacao.AlternativaCorrecaoQuiz;
+import br.com.ecociente.mobile.core.domain.educacao.ContextoCondominialQuiz;
+import br.com.ecociente.mobile.core.domain.educacao.Quiz;
+import br.com.ecociente.mobile.core.domain.educacao.RespostaQuiz;
+import br.com.ecociente.mobile.core.domain.educacao.RespostaQuizRegistrada;
+import br.com.ecociente.mobile.core.domain.educacao.TentativaQuizEstado;
+import br.com.ecociente.mobile.core.exception.educacao.FluxoQuizException;
+import br.com.ecociente.mobile.core.gateway.educacao.QuizGateway;
+import br.com.ecociente.mobile.core.gateway.educacao.TentativaQuizGateway;
+import br.com.ecociente.mobile.core.service.educacao.FinalizarTentativaQuizService;
+
 
 class FinalizarTentativaQuizServiceTest {
 
