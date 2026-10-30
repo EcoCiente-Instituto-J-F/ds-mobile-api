@@ -1,5 +1,7 @@
 package br.com.ecociente.mobile.core.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -7,12 +9,15 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.ecociente.mobile.core.domain.ItemRevisaoQuiz;
 import br.com.ecociente.mobile.core.domain.ResultadoTentativaQuiz;
 import br.com.ecociente.mobile.core.domain.RevisaoTentativaQuiz;
+import br.com.ecociente.mobile.core.domain.ResumoTentativaQuiz;
 import br.com.ecociente.mobile.core.exception.FluxoQuizException;
 import br.com.ecociente.mobile.core.exception.FluxoQuizException.Tipo;
 import br.com.ecociente.mobile.core.gateway.TentativaQuizGateway;
 
 @Service
 public class ConsultarRevisaoQuizService {
+
+  private static final int LIMITE_MAXIMO_HISTORICO = 50;
 
   private final TentativaQuizGateway gateway;
 
@@ -25,14 +30,7 @@ public class ConsultarRevisaoQuizService {
   public RevisaoTentativaQuiz executar(
       Integer usuarioId,
       Integer tentativaId) {
-    if (usuarioId == null
-        || usuarioId <= 0
-        || gateway.buscarTipoUsuarioAtivo(usuarioId).isEmpty()) {
-      throw erro(
-          Tipo.NAO_PERMITIDO,
-          "USUARIO_INVALIDO",
-          "Usuário não encontrado ou inativo");
-    }
+    validarUsuario(usuarioId);
 
     if (tentativaId == null || tentativaId <= 0) {
       throw erro(
@@ -100,5 +98,43 @@ public class ConsultarRevisaoQuizService {
         tipo,
         codigo,
         mensagem);
+  }
+
+  /** Últimas tentativas concluídas do usuário autenticado, da mais recente para a mais antiga. */
+  @Transactional(readOnly = true)
+  public List<ResumoTentativaQuiz> historico(
+      Integer usuarioId,
+      int limite) {
+    validarUsuario(usuarioId);
+
+    if (limite < 1 || limite > LIMITE_MAXIMO_HISTORICO) {
+      throw erro(
+          Tipo.DADOS_INVALIDOS,
+          "LIMITE_INVALIDO",
+          "O limite deve estar entre 1 e " + LIMITE_MAXIMO_HISTORICO);
+    }
+
+    return gateway.listarConcluidas(usuarioId, limite);
+  }
+
+  /** Ids distintos dos quizzes já concluídos, aprovado ou não. Não usa o limite do histórico. */
+  @Transactional(readOnly = true)
+  public List<Integer> quizzesConcluidos(
+      Integer usuarioId) {
+    validarUsuario(usuarioId);
+
+    return gateway.listarQuizzesConcluidos(usuarioId);
+  }
+
+  private void validarUsuario(
+      Integer usuarioId) {
+    if (usuarioId == null
+        || usuarioId <= 0
+        || gateway.buscarTipoUsuarioAtivo(usuarioId).isEmpty()) {
+      throw erro(
+          Tipo.NAO_PERMITIDO,
+          "USUARIO_INVALIDO",
+          "Usuário não encontrado ou inativo");
+    }
   }
 }
