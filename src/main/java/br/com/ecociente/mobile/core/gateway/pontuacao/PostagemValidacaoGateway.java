@@ -1,0 +1,23 @@
+
+package br.com.ecociente.mobile.core.gateway.pontuacao;
+
+import java.util.List;
+
+public interface PostagemValidacaoGateway {
+
+  List<Integer> buscarVencidas(int limite);
+
+  void encerrarJanela(Integer postagemId);
+
+  void decidir(Integer postagemId, boolean aprovar);
+
+  void atualizarTrustScore(
+      Integer usuarioId,
+      Integer condominioId);
+
+  List<Integer> buscarVencidasApos(Integer ultimoId, int limite);
+
+  boolean tentarBloquearFechamento(Integer postagemId);
+
+  boolean janelaVencida(Integer postagemId);
+}

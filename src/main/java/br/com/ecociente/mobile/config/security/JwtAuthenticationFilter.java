@@ -27,43 +27,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
-        HttpServletRequest request,
-        HttpServletResponse response,
-        FilterChain filterChain
-    ) throws ServletException, IOException {
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain) throws ServletException, IOException {
 
         String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (authorization == null
-            || !authorization.startsWith("Bearer ")) {
+                || !authorization.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
             Claims claims = jwtService.validarToken(
-                authorization.substring(7)
-            );
+                    authorization.substring(7));
 
             Integer usuarioId = claims.get("usuarioId", Integer.class);
             String perfil = claims.get("perfil", String.class);
 
-            List<SimpleGrantedAuthority> authorities =
-                perfil == null || perfil.isBlank()
+            List<SimpleGrantedAuthority> authorities = perfil == null || perfil.isBlank()
                     ? List.of()
                     : List.of(new SimpleGrantedAuthority("ROLE_" + perfil));
 
-            var authentication =
-                new UsernamePasswordAuthenticationToken(
+            var authentication = new UsernamePasswordAuthenticationToken(
                     usuarioId,
                     null,
-                    authorities
-                );
+                    authorities);
 
             authentication.setDetails(
-                new WebAuthenticationDetailsSource()
-                    .buildDetails(request)
-            );
+                    new WebAuthenticationDetailsSource()
+                            .buildDetails(request));
 
             var context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(authentication);
@@ -72,12 +66,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (JwtException | IllegalArgumentException exception) {
             SecurityContextHolder.clearContext();
             response.sendError(
-                HttpServletResponse.SC_UNAUTHORIZED,
-                "Token inválido ou expirado"
-            );
+                    HttpServletResponse.SC_UNAUTHORIZED,
+                    "Token inválido ou expirado");
             return;
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(
+            HttpServletRequest request) {
+        return "POST".equals(request.getMethod())
+                && request.getRequestURI().equals(
+                        request.getContextPath() + "/auth/login");
     }
 }

@@ -3,13 +3,13 @@ package br.com.ecociente.mobile.dataprovider.mapper;
 import org.springframework.stereotype.Component;
 
 import br.com.ecociente.mobile.core.domain.Postagem;
-import br.com.ecociente.mobile.dataprovider.entity.PostagemAnaliseEntity;
+import br.com.ecociente.mobile.dataprovider.entity.PostagemEntity;
 
 @Component
 public class PostagemAnalisePersistenceMapper {
 
   public Postagem toDomain(
-      PostagemAnaliseEntity entity,
+      PostagemEntity entity,
       Object[] dados) {
 
     return new Postagem(

@@ -9,18 +9,18 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.ecociente.mobile.core.domain.Cooperativa;
 import br.com.ecociente.mobile.core.gateway.CooperativaDetalheGateway;
 import br.com.ecociente.mobile.dataprovider.mapper.CooperativaDetalhePersistenceMapper;
-import br.com.ecociente.mobile.dataprovider.repository.CooperativaDetalheRepository;
+import br.com.ecociente.mobile.dataprovider.repository.CooperativaRepository;
 
 @Component
 @Transactional(propagation = Propagation.MANDATORY)
 public class CooperativaDetalheGatewayImpl
     implements CooperativaDetalheGateway {
 
-  private final CooperativaDetalheRepository repository;
+  private final CooperativaRepository repository;
   private final CooperativaDetalhePersistenceMapper mapper;
 
   public CooperativaDetalheGatewayImpl(
-      CooperativaDetalheRepository repository,
+      CooperativaRepository repository,
       CooperativaDetalhePersistenceMapper mapper) {
     this.repository = repository;
     this.mapper = mapper;

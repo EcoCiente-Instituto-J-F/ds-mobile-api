@@ -8,10 +8,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
-import br.com.ecociente.mobile.dataprovider.entity.PostagemAnaliseEntity;
+import br.com.ecociente.mobile.dataprovider.entity.PostagemEntity;
 
 public interface PostagemAnaliseRepository
-    extends Repository<PostagemAnaliseEntity, Integer> {
+    extends Repository<PostagemEntity, Integer> {
 
   @Query(value = """
       SELECT s.usuario_id
@@ -48,7 +48,7 @@ public interface PostagemAnaliseRepository
       ORDER BY p.data_postagem ASC, p.id_postagem ASC
       LIMIT :limite OFFSET :deslocamento
       """, nativeQuery = true)
-  List<PostagemAnaliseEntity> listarEmAnalise(
+  List<PostagemEntity> listarEmAnalise(
       @Param("condominioId") Integer condominioId,
       @Param("deslocamento") long deslocamento,
       @Param("limite") int limite);

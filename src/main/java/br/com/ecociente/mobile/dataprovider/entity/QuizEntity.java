@@ -28,12 +28,7 @@ public class QuizEntity {
     @Column(name = "titulo_quiz", nullable = false, length = 255)
     private String titulo;
 
-    @Column(
-        name = "nota_minima_aprovacao",
-        nullable = false,
-        precision = 5,
-        scale = 2
-    )
+    @Column(name = "nota_minima_aprovacao", nullable = false, precision = 5, scale = 2)
     private BigDecimal notaMinimaAprovacao;
 
     @Column(name = "pontos_recompensa", nullable = false)
@@ -70,5 +65,9 @@ public class QuizEntity {
 
     public Integer getPontosRecompensa() {
         return pontosRecompensa;
+    }
+
+    public boolean isAtivo() {
+        return ativo;
     }
 }
