@@ -5,6 +5,8 @@ import java.time.OffsetDateTime;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import br.com.ecociente.mobile.core.service.notificacoes.PushService;
+
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,13 +28,15 @@ public class SincronizacaoPontuacaoService {
   private final CycleService cycleService;
   private final Clock clock;
   private final int retentionDays;
+  private final PushService push;
 
   public SincronizacaoPontuacaoService(
       SincronizacaoPontuacaoGateway sincronizacaoGateway,
       RankingRedisGateway rankingGateway,
       CycleService cycleService,
       Clock clock,
-      @Value("${app.ranking.retention-days:90}") int retentionDays) {
+      @Value("${app.ranking.retention-days:90}") int retentionDays,
+      PushService push) {
     if (retentionDays < 1) {
       throw new IllegalArgumentException(
           "A retenção deve ser de pelo menos um dia");
@@ -43,6 +47,7 @@ public class SincronizacaoPontuacaoService {
     this.cycleService = cycleService;
     this.clock = clock;
     this.retentionDays = retentionDays;
+    this.push = push;
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
@@ -129,14 +134,16 @@ public class SincronizacaoPontuacaoService {
       return;
     }
 
-    rankingGateway.definirPontuacao(
-        cycleService.montarChave(
-            TipoRankingType.MORADORES,
-            credito.getCondominioId(),
-            ciclo),
-        credito.getUsuarioId(),
-        pontos,
-        expiraEm);
+    String chave = cycleService.montarChave(TipoRankingType.MORADORES, credito.getCondominioId(), ciclo);
+    Long anterior = rankingGateway.buscarPosicao(chave, credito.getUsuarioId());
+    rankingGateway.definirPontuacao(chave, credito.getUsuarioId(), pontos, expiraEm);
+    Long nova = rankingGateway.buscarPosicao(chave, credito.getUsuarioId());
+    if (anterior != null && nova != null && nova < anterior && credito.getOcorridoEm().isAfter(ciclo.getInicio())) {
+      push.criar(credito.getUsuarioId(), "ranking_subiu",
+          "ranking:" + ciclo.getId() + ":" + credito.getId(),
+          "Você subiu no ranking! 🏆", "Agora você está na posição " + nova + " do ranking.",
+          "ranking", "Ver ranking");
+    }
   }
 
   private void atualizarTorre(MovimentacaoPontos credito) {
