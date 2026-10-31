@@ -1,5 +1,6 @@
 package br.com.ecociente.mobile.config.pontuacao.job;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +11,7 @@ import br.com.ecociente.mobile.core.gateway.pontuacao.PostagemValidacaoGateway;
 import br.com.ecociente.mobile.core.service.pontuacao.PostagemValidacaoService;
 
 @Component
+@ConditionalOnProperty(name = "app.jobs.enabled", havingValue = "true", matchIfMissing = true)
 public class PostValidationClosingJob {
 
     private static final Logger log = LoggerFactory.getLogger(PostValidationClosingJob.class);
