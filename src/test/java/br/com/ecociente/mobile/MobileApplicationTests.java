@@ -1,6 +1,11 @@
 package br.com.ecociente.mobile;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +15,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -28,6 +35,7 @@ import br.com.ecociente.mobile.dataprovider.validador.visao.ModeloClip;
     classes = MobileApplication.class,
     properties = {
         "spring.config.import=",
+        "app.jobs.enabled=false",
         "app.security.jwt.secret=ecociente-teste-contexto-jwt-0123456789abcdef",
         "spring.jpa.hibernate.ddl-auto=none",
         "spring.jpa.open-in-view=false",
@@ -68,6 +76,9 @@ class MobileApplicationTests {
     @Autowired
     private ApplicationContext context;
 
+    @Autowired
+    private RequestMappingHandlerMapping requestMappingHandlerMapping;
+
     @MockitoBean
     private FirebaseAuth firebaseAuth;
 
@@ -94,5 +105,28 @@ class MobileApplicationTests {
         assertNotNull(context.getBean(FirebaseSenhaGateway.class));
         assertNotNull(context.getBean(CriarPostagemComTriagemService.class));
         assertNotNull(context.getBean("authenticationManager"));
+    }
+
+    @Test
+    void rotasDeSenhaDevemEstarRegistradas() {
+        Set<String> rotasPost = requestMappingHandlerMapping.getHandlerMethods()
+                .keySet()
+                .stream()
+                .filter(info -> info.getMethodsCondition().getMethods()
+                        .contains(RequestMethod.POST))
+                .flatMap(info -> info.getPatternValues().stream())
+                .collect(Collectors.toSet());
+
+        assertTrue(rotasPost.containsAll(Set.of(
+                "/senhas/esqueceu",
+                "/senhas/redefinir",
+                "/senhas/alterar"
+        )), () -> "Rotas de senha ausentes: " + rotasPost);
+    }
+
+    @Test
+    void jobsDePontuacaoDevemEstarDesligadosNoPreflight() {
+        assertFalse(context.containsBean("redisPendingSyncJob"));
+        assertFalse(context.containsBean("postValidationClosingJob"));
     }
 }

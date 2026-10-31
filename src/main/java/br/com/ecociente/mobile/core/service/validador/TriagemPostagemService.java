@@ -1,5 +1,6 @@
 package br.com.ecociente.mobile.core.service.validador;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import java.util.concurrent.Semaphore;
 
 import org.springframework.beans.factory.annotation.Value;

@@ -1,5 +1,6 @@
 package br.com.ecociente.mobile.entrypoint.controller.validador;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import jakarta.validation.constraints.Min;
 
+@ConditionalOnProperty(name = "app.validador.ativo", havingValue = "true", matchIfMissing = true)
 @RestController
 @RequestMapping("/v1/postagens")
 @Validated
