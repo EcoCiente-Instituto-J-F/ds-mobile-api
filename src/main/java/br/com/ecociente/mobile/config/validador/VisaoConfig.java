@@ -1,5 +1,6 @@
 package br.com.ecociente.mobile.config.validador;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -11,6 +12,7 @@ import br.com.ecociente.mobile.dataprovider.validador.visao.ClassificadorClipGat
 import br.com.ecociente.mobile.dataprovider.validador.visao.ModeloClip;
 
 /** Carrega o CLIP uma vez na subida (como o serviço antigo): o pod só abre a porta com o modelo pronto. */
+@ConditionalOnProperty(name = "app.validador.ativo", havingValue = "true", matchIfMissing = true)
 @Configuration
 public class VisaoConfig {
 

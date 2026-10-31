@@ -1,5 +1,6 @@
 package br.com.ecociente.mobile.core.service.validador;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
@@ -15,6 +16,7 @@ import br.com.ecociente.mobile.dataprovider.validador.foto.FotoHttpGateway;
 import br.com.ecociente.mobile.dataprovider.validador.visao.ClassificadorClipGateway;
 
 /** Triagem de uma foto: baixa, classifica, aplica a regra de pertinência e registra os indícios. */
+@ConditionalOnProperty(name = "app.validador.ativo", havingValue = "true", matchIfMissing = true)
 @Service
 public class TriagemFotoService {
 
