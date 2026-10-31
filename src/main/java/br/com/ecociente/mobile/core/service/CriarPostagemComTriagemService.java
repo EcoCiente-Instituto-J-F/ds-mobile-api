@@ -1,5 +1,6 @@
 package br.com.ecociente.mobile.core.service;
 
+import org.springframework.beans.factory.ObjectProvider;
 import java.time.OffsetDateTime;
 
 import org.slf4j.Logger;
@@ -20,7 +21,7 @@ public class CriarPostagemComTriagemService {
   private static final Logger log = LoggerFactory.getLogger(CriarPostagemComTriagemService.class);
 
   private final CriarPostagemService criarService;
-  private final TriagemPostagemService triagemService;
+  private final ObjectProvider<TriagemPostagemService> triagemService;
   private final PostagemGateway postagemGateway;
 
   @Transactional(propagation = Propagation.NEVER)
@@ -40,8 +41,17 @@ public class CriarPostagemComTriagemService {
         hashFoto,
         capturadaEm);
 
+    var triagem = triagemService.getIfAvailable();
+
+    if (triagem == null) {
+      log.info(
+          "Validador desligado (VALIDADOR_ATIVO=false): postagem {} segue para a votação dos moradores",
+          postagem.id());
+      return postagem;
+    }
+
     try {
-      var veredito = triagemService.triar(postagem.id());
+      var veredito = triagem.triar(postagem.id());
 
       log.info(
           "Triagem da postagem {} concluída: {}",

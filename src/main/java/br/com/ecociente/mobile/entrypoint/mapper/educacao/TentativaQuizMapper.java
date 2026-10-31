@@ -80,7 +80,7 @@ public class TentativaQuizMapper {
                                 item.correta().id(),
                                 item.correta().texto()),
                         item.acertouNaTentativa(),
-                        null))
+                        item.explicacao()))
                 .toList();
 
         return new RevisaoTentativaQuizResponseDto(

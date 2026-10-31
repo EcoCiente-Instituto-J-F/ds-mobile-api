@@ -1,5 +1,6 @@
 package br.com.ecociente.mobile.core.service.validador;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import java.util.concurrent.Semaphore;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +20,7 @@ import br.com.ecociente.mobile.dataprovider.validador.gateway.PostagemValidacaoJ
  * Fluxo completo do POST /triagem: lê a postagem, valida a categoria, controla a vazão e grava o veredito.
  * A conexão com o banco não fica aberta durante o download e a inferência.
  */
+@ConditionalOnProperty(name = "app.validador.ativo", havingValue = "true", matchIfMissing = true)
 @Service
 public class TriagemPostagemService {
 
