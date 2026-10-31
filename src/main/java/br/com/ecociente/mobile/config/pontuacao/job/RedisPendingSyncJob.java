@@ -3,6 +3,7 @@ package br.com.ecociente.mobile.config.pontuacao.job;
 import java.time.Clock;
 import java.time.Instant;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +14,7 @@ import br.com.ecociente.mobile.core.gateway.pontuacao.SincronizacaoPontuacaoGate
 import br.com.ecociente.mobile.core.service.pontuacao.SincronizacaoPontuacaoService;
 
 @Component
+@ConditionalOnProperty(name = "app.jobs.enabled", havingValue = "true", matchIfMissing = true)
 public class RedisPendingSyncJob {
 
     private static final Logger log = LoggerFactory.getLogger(RedisPendingSyncJob.class);
