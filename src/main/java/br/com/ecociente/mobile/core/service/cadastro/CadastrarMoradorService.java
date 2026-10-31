@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.Period;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import br.com.ecociente.mobile.core.gateway.cadastro.TiposCadastroGateway;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,32 +19,31 @@ import br.com.ecociente.mobile.core.exception.cadastro.NotFoundException;
 import br.com.ecociente.mobile.core.gateway.cadastro.CondominioGateway;
 import br.com.ecociente.mobile.core.gateway.cadastro.EnderecoGateway;
 import br.com.ecociente.mobile.core.gateway.cadastro.UsuarioGateway;
-import br.com.ecociente.mobile.core.usecase.cadastro.input.CadastrarMoradorUseCase;
-import br.com.ecociente.mobile.core.usecase.cadastro.output.CadastroMoradorOutput;
+import br.com.ecociente.mobile.core.domain.cadastro.ResultadoCadastroMorador;
+import br.com.ecociente.mobile.core.gateway.cadastro.CodificadorSenhaGateway;
 
 @Service
-public class CadastrarMoradorService implements CadastrarMoradorUseCase {
+public class CadastrarMoradorService {
   private final UsuarioGateway usuarioGateway;
   private final CondominioGateway condominioGateway;
-  private final PasswordEncoder passwordEncoder;
   private final TiposCadastroGateway tiposCadastro;
   private final EnderecoGateway enderecoGateway;
+  private final CodificadorSenhaGateway codificadorSenhaGateway;
 
   public CadastrarMoradorService(
       UsuarioGateway usuarioGateway,
       CondominioGateway condominioGateway,
-      PasswordEncoder passwordEncoder, TiposCadastroGateway tiposCadastro,
+      CodificadorSenhaGateway codificadorSenhaGateway, TiposCadastroGateway tiposCadastro,
       EnderecoGateway enderecoGateway) {
     this.usuarioGateway = usuarioGateway;
     this.condominioGateway = condominioGateway;
-    this.passwordEncoder = passwordEncoder;
+    this.codificadorSenhaGateway = codificadorSenhaGateway;
     this.tiposCadastro = tiposCadastro;
     this.enderecoGateway = enderecoGateway;
   }
 
-  @Override
   @Transactional
-  public CadastroMoradorOutput executar(String nomeCompleto, String email, String senha, LocalDate dataNascimento,
+  public ResultadoCadastroMorador executar(String nomeCompleto, String email, String senha, LocalDate dataNascimento,
       String cpf,
       String codigoCondominio) {
     validarDataNascimento(dataNascimento);
@@ -66,7 +64,7 @@ public class CadastrarMoradorService implements CadastrarMoradorUseCase {
 
     Endereco enderecoCondominio = enderecoGateway.buscarPorId(condominio.getEnderecoId());
 
-    String senhaHash = passwordEncoder.encode(senha);
+    String senhaHash = codificadorSenhaGateway.gerarHash(senha);
     Usuario usuario = new Usuario(
         null, nomeCompleto, emailLimpo, senhaHash, dataNascimento, cpfLimpo,
         null, true, OffsetDateTime.now(), tipoUsuarioId, enderecoCondominio.getIdEndereco());
@@ -80,7 +78,7 @@ public class CadastrarMoradorService implements CadastrarMoradorUseCase {
     condominioGateway.vincularMorador(vinculoMorador);
 
     enderecoGateway.buscarPorId(condominio.getEnderecoId());
-    return new CadastroMoradorOutput(
+    return new ResultadoCadastroMorador(
         usuarioSalvo,
         condominio.getCodigoAcesso(),
         condominio.getNomeCondominio(),

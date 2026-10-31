@@ -40,4 +40,11 @@ public class UsuarioSenhaGatewayImpl implements UsuarioGateway {
 
         usuarioRepository.save(entity);
     }
+
+    @Override
+    public Optional<Usuario> buscarAtivoPorId(Integer id) {
+        return usuarioRepository.buscarPorIdComBloqueio(id)
+                .filter(entity -> Boolean.TRUE.equals(entity.getAtivo()))
+                .map(usuarioMapper::toDomain);
+    }
 }

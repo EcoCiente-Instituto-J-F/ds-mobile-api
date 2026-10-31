@@ -14,7 +14,7 @@ import br.com.ecociente.mobile.core.domain.validador.ClasseProbabilidade;
  * Zero-shot com CLIP: compara a foto com as descrições de cada classe, sem dataset nem treino.
  * Cada prompt recebe uma probabilidade (softmax sobre todos); a probabilidade da classe é a soma dos seus prompts.
  */
-public final class ClassificadorClipGateway {
+public final class ClassificadorClipGateway implements br.com.ecociente.mobile.core.gateway.validador.ClassificadorGateway {
 
   /** logit_scale treinado do CLIP (exp(4.6052) ≈ 100). */
   static final double ESCALA_LOGITS = 100.0;

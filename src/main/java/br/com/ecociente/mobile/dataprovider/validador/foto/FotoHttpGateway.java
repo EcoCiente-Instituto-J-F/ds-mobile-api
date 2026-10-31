@@ -25,7 +25,7 @@ import br.com.ecociente.mobile.core.exception.validador.FotoException;
 /** Busca a foto no storage do app: só hosts permitidos (anti-SSRF), sem redirecionar, com limite de tamanho. */
 @ConditionalOnProperty(name = "app.validador.ativo", havingValue = "true", matchIfMissing = true)
 @Component
-public class FotoHttpGateway {
+public class FotoHttpGateway implements br.com.ecociente.mobile.core.gateway.validador.FotoGateway {
 
   private final Set<String> hostsPermitidos;
   private final long tamanhoMaximo;

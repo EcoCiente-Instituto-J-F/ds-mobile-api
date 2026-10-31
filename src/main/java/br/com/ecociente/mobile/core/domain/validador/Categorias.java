@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
  * Catálogo das categorias aceitas e das descrições (prompts) que o CLIP compara com a foto.
  * Os prompts estão em inglês: o CLIP foi treinado com legendas em inglês.
  */
-@com.fasterxml.jackson.databind.annotation.JsonNaming(com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy.class)
 public final class Categorias {
 
   public static final List<Classe> CATEGORIAS = List.of(

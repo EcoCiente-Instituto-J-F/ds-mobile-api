@@ -14,22 +14,17 @@ import br.com.ecociente.mobile.core.domain.validador.VeredictoFoto;
 import br.com.ecociente.mobile.core.exception.validador.CategoriaInvalidaException;
 import br.com.ecociente.mobile.core.exception.validador.NotFoundException;
 import br.com.ecociente.mobile.core.exception.validador.ServicoOcupadoException;
-import br.com.ecociente.mobile.dataprovider.validador.gateway.PostagemValidacaoJdbcGateway;
+import br.com.ecociente.mobile.core.gateway.validador.PostagemValidacaoGateway;
 
-/**
- * Fluxo completo do POST /triagem: lê a postagem, valida a categoria, controla a vazão e grava o veredito.
- * A conexão com o banco não fica aberta durante o download e a inferência.
- */
-@ConditionalOnProperty(name = "app.validador.ativo", havingValue = "true", matchIfMissing = true)
 @Service
 public class TriagemPostagemService {
 
-  private final PostagemValidacaoJdbcGateway postagens;
+  private final PostagemValidacaoGateway postagens;
   private final TriagemFotoService triagemFoto;
   private final Semaphore vagas;
 
   public TriagemPostagemService(
-      PostagemValidacaoJdbcGateway postagens,
+      PostagemValidacaoGateway postagens,
       TriagemFotoService triagemFoto,
       @Value("${app.validador.max-pedidos-simultaneos}") int maxPedidosSimultaneos) {
     this.postagens = postagens;
@@ -42,7 +37,6 @@ public class TriagemPostagemService {
         .orElseThrow(() -> new NotFoundException("Postagem não encontrada."));
     String categoria = categoriaDoCatalogo(dados.nomeCategoria());
 
-    // backpressure: o modelo atende poucos pedidos por vez; acima disso a API responde 503 em vez de enfileirar
     if (!vagas.tryAcquire()) {
       throw new ServicoOcupadoException();
     }

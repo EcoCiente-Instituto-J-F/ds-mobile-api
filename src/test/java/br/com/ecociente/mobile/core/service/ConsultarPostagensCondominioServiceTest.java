@@ -12,10 +12,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.springframework.dao.DuplicateKeyException;
 
-import br.com.ecociente.mobile.core.domain.educacao.ContextoCondominialQuiz;
 import br.com.ecociente.mobile.core.domain.Postagem;
+import br.com.ecociente.mobile.core.domain.educacao.ContextoCondominialQuiz;
 import br.com.ecociente.mobile.core.exception.PostagemException;
 import br.com.ecociente.mobile.core.exception.PostagemException.Tipo;
 import br.com.ecociente.mobile.core.gateway.PostagemGateway;

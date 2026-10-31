@@ -2,8 +2,8 @@ package br.com.ecociente.mobile.core.service;
 
 import java.time.OffsetDateTime;
 
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.DuplicateKeyException;
+
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -96,39 +96,15 @@ public class CriarPostagemService {
       throw fotoJaUtilizada();
     }
 
-    Integer id;
+    Integer id = gateway.inserir(
+        usuarioId,
+        condominioId,
+        vinculo.torreId(),
+        categoriaId,
+        urlFoto,
+        hashFoto,
+        capturadaEm);
 
-    try {
-      id = gateway.inserir(
-          usuarioId,
-          condominioId,
-          vinculo.torreId(),
-          categoriaId,
-          urlFoto,
-          hashFoto,
-          capturadaEm);
-    } catch (DuplicateKeyException exception) {
-      // Duas postagens com a mesma foto ao mesmo tempo: a restrição UNIQUE do banco decide.
-      // Qualquer outra chave duplicada é erro de verdade e não vira "foto repetida".
-      if (exception.getMessage() != null
-          && exception.getMessage().contains("uq_postagens_hash_foto")) {
-        throw fotoJaUtilizada();
-      }
-
-      throw exception;
-    } catch (DataIntegrityViolationException exception) {
-      // O relógio do aparelho pode estar alguns segundos adiante do banco: a restrição
-      // capturada_em <= data_postagem recusa, e isso é dado inválido, não erro do servidor.
-      if (exception.getMessage() != null
-          && exception.getMessage().contains("ck_postagens_capturada_em")) {
-        throw erro(
-            Tipo.DADOS_INVALIDOS,
-            "CAPTURA_INVALIDA",
-            "A data de captura não pode estar no futuro");
-      }
-
-      throw exception;
-    }
 
     return gateway.buscarPorId(id)
         .orElseThrow(() -> new IllegalStateException(

@@ -1,5 +1,9 @@
 package br.com.ecociente.mobile.dataprovider.gateway.calendario;
 
+import br.com.ecociente.mobile.core.domain.calendario.PaginaCalendario;
+import br.com.ecociente.mobile.core.domain.calendario.PaginacaoCalendario;
+import br.com.ecociente.mobile.dataprovider.mapper.calendario.PaginacaoCalendarioPersistenceMapper;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -89,7 +93,20 @@ public class AgendamentoMoradorGatewayImpl
   }
 
   @Override
-  public Page<AgendamentoColeta> listar(
+  public PaginaCalendario<AgendamentoColeta> listar(
+      Integer usuarioId,
+      AgendamentoFiltro filtro,
+      PaginacaoCalendario paginacao) {
+
+    var pageable = PaginacaoCalendarioPersistenceMapper.toPageable(
+        paginacao);
+
+    return PaginacaoCalendarioPersistenceMapper.toDomain(
+        listarPersistencia(usuarioId, filtro, pageable),
+        paginacao);
+  }
+
+  private Page<AgendamentoColeta> listarPersistencia(
       Integer usuarioId,
       AgendamentoFiltro filtro,
       Pageable pageable) {

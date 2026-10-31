@@ -1,8 +1,8 @@
 package br.com.ecociente.mobile.core.service.calendario;
 
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import br.com.ecociente.mobile.core.domain.calendario.PaginaCalendario;
+import br.com.ecociente.mobile.core.domain.calendario.PaginacaoCalendario;
 import org.springframework.stereotype.Service;
 
 import br.com.ecociente.mobile.core.domain.calendario.AgendamentoColeta;
@@ -15,14 +15,14 @@ import lombok.RequiredArgsConstructor;
 public class ListarAgendamentoService {
 
   private final ResolvedorConsultaAgendamento resolvedor;
-    public Page<AgendamentoColeta> executar(
+    public PaginaCalendario<AgendamentoColeta> executar(
             Integer usuarioId,
             Perfil perfil,
             AgendamentoFiltro filtro,
-            Pageable pageable) {
+            PaginacaoCalendario PaginacaoCalendario) {
 
         ConsultaAgendamentoPorPerfil consulta = resolvedor.resolver(perfil);
-        return consulta.listar(usuarioId, filtro, pageable);
+        return consulta.listar(usuarioId, filtro, PaginacaoCalendario);
     }
   
 }

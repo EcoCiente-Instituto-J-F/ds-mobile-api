@@ -132,17 +132,16 @@ public class SenhaService {
 
         @Transactional
         public Timestamp alterarSenha(
-                        String emailAutenticado,
+                        Integer usuarioId,
                         String senhaAtual,
                         String novaSenha,
                         String confirmacaoSenha) {
 
-                validarNovaSenha(novaSenha, confirmacaoSenha);
-
-                Usuario usuario = usuarioGateway
-                                .buscarPorEmail(emailAutenticado)
+                Usuario usuario = usuarioGateway.buscarAtivoPorId(usuarioId)
                                 .orElseThrow(() -> new RecursoNaoEncontradoException(
-                                                "Usuário não encontrado."));
+                                                "Usuário não encontrado ou inativo."));
+
+                validarNovaSenha(novaSenha, confirmacaoSenha);
 
                 if (!senhaEncoderGateway.corresponde(
                                 senhaAtual,

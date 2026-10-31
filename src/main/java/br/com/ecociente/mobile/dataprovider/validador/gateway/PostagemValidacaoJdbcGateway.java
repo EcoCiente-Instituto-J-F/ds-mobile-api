@@ -12,7 +12,7 @@ import br.com.ecociente.mobile.core.domain.validador.VinculoTrust;
 
 /** SQL direto sobre o schema do app: chama os procedures e lê as tabelas de postagens. */
 @Component
-public class PostagemValidacaoJdbcGateway {
+public class PostagemValidacaoJdbcGateway implements br.com.ecociente.mobile.core.gateway.validador.PostagemValidacaoGateway {
 
   private final JdbcTemplate jdbc;
 

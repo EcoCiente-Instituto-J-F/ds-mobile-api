@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.ecociente.mobile.core.service.senha.SenhaService;
-import br.com.ecociente.mobile.dataprovider.repository.UsuarioRepository;
 import br.com.ecociente.mobile.entrypoint.dto.senha.request.AlterarSenhaRequest;
 import br.com.ecociente.mobile.entrypoint.dto.senha.request.EsqueciSenhaRequest;
 import br.com.ecociente.mobile.entrypoint.dto.senha.request.RedefinirSenhaRequest;
@@ -25,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 public class SenhaController {
 
         private final SenhaService senhaService;
-        private final UsuarioRepository usuarioRepository;
 
         @PostMapping("/esqueceu")
         public ResponseEntity<SenhaResponse> esqueceuSenha(
@@ -54,27 +52,20 @@ public class SenhaController {
 
                 return resposta(
                                 senhaService.alterarSenha(
-                                                emailAutenticado(authentication),
+                                                usuarioAutenticado(authentication),
                                                 request.senhaAtual(),
                                                 request.novaSenha(),
                                                 request.confirmacaoSenha()));
         }
 
-        private String emailAutenticado(Authentication authentication) {
+        private Integer usuarioAutenticado(Authentication authentication) {
                 if (authentication == null
                                 || !authentication.isAuthenticated()
                                 || !(authentication.getPrincipal() instanceof Integer usuarioId)) {
                         throw new BadCredentialsException("Autenticação inválida.");
                 }
 
-                var usuario = usuarioRepository.findById(usuarioId)
-                                .orElseThrow(() -> new BadCredentialsException("Usuário inválido."));
-
-                if (!Boolean.TRUE.equals(usuario.getAtivo())) {
-                        throw new BadCredentialsException("Usuário desativado.");
-                }
-
-                return usuario.getEmailUsuario();
+                return usuarioId;
         }
 
         private ResponseEntity<SenhaResponse> resposta(Timestamp processadoEm) {

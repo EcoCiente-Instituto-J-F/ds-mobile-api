@@ -1,3 +1,31 @@
+-- PREPARACAO_COMPARTILHADA_TESTES
+SET search_path TO public;
+
+INSERT INTO public.tb_lkp_tipos_eventos_auditados (nome_evento)
+SELECT evento
+FROM (
+    VALUES
+        ('usuario_condominio'),
+        ('agendamento_coleta'),
+        ('postagem')
+) AS eventos(evento)
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM public.tb_lkp_tipos_eventos_auditados existente
+    WHERE existente.nome_evento = eventos.evento
+);
+
+INSERT INTO public.tb_lkp_tipos_operacoes_auditoria (nome_operacao)
+SELECT operacao
+FROM (
+    VALUES ('INSERT'), ('UPDATE'), ('DELETE')
+) AS operacoes(operacao)
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM public.tb_lkp_tipos_operacoes_auditoria existente
+    WHERE existente.nome_operacao = operacoes.operacao
+);
+
 -- Permite usar o schema base que ainda não possui estes campos.
 -- Não substitui a migração e a trigger reais de coletas.
 ALTER TABLE tb_agendamentos_coletas
