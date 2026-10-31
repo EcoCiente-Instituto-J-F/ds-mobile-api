@@ -1,20 +1,16 @@
 package br.com.ecociente.mobile.core.service;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.springframework.dao.DuplicateKeyException;
 
-import br.com.ecociente.mobile.core.domain.educacao.ContextoCondominialQuiz;
 import br.com.ecociente.mobile.core.domain.Postagem;
 import br.com.ecociente.mobile.core.exception.PostagemException;
 import br.com.ecociente.mobile.core.exception.PostagemException.Tipo;

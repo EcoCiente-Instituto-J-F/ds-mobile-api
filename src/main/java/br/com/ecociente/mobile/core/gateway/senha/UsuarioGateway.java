@@ -11,4 +11,6 @@ public interface UsuarioGateway {
     Optional<Usuario> buscarPorId(Integer id);
 
     void atualizarSenha(Integer usuarioId, String senhaHash);
+
+    Optional<Usuario> buscarAtivoPorId(Integer id);
 }

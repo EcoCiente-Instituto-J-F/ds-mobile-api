@@ -1,5 +1,7 @@
 package br.com.ecociente.mobile.entrypoint.controller.calendario;
 
+import br.com.ecociente.mobile.entrypoint.mapper.calendario.PaginacaoCalendarioMapper;
+
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -92,9 +94,17 @@ public class AgendamentoController {
       description = "Parâmetros de paginação e ordenação")
     @PageableDefault(size = 10,sort ="dataInicio", direction = Sort.Direction.ASC) Pageable pageable){
       AgendamentoFiltro filtro = agendamentoFiltroMapper.toDomain(status,dataInicio,dataFim,condominioId,cooperativaId,possuiRecorrencia);
-      Page<CalendarioResponseDto> response = listarAgendamentoService
-        .executar(CalendarioUsuario.id(authentication),CalendarioUsuario.perfil(authentication), filtro, pageable)
-        .map(calendarioResponseMapper::toResponseDto);
+      var pagina = listarAgendamentoService.executar(
+          CalendarioUsuario.id(authentication),
+          CalendarioUsuario.perfil(authentication),
+          filtro,
+          PaginacaoCalendarioMapper.toDomain(pageable));
+
+      Page<CalendarioResponseDto> response =
+          PaginacaoCalendarioMapper.toResponse(
+              pagina,
+              pageable,
+              calendarioResponseMapper::toResponseDto);
         return ResponseEntity.ok(response);
 
   }

@@ -11,24 +11,22 @@ import br.com.ecociente.mobile.core.domain.validador.ParametrosTriagem;
 import br.com.ecociente.mobile.core.domain.validador.VeredictoFoto;
 import br.com.ecociente.mobile.core.exception.validador.FotoException;
 import br.com.ecociente.mobile.core.imagem.validador.DHash;
-import br.com.ecociente.mobile.dataprovider.validador.foto.FotoHttpGateway;
-import br.com.ecociente.mobile.dataprovider.validador.visao.ClassificadorClipGateway;
+import br.com.ecociente.mobile.core.gateway.validador.FotoGateway;
+import br.com.ecociente.mobile.core.gateway.validador.ClassificadorGateway;
 
-/** Triagem de uma foto: baixa, classifica, aplica a regra de pertinência e registra os indícios. */
 @Service
 public class TriagemFotoService {
 
-  private final FotoHttpGateway fotos;
-  private final ClassificadorClipGateway classificador;
+  private final FotoGateway fotos;
+  private final ClassificadorGateway classificador;
   private final ParametrosTriagem parametros;
 
-  public TriagemFotoService(FotoHttpGateway fotos, ClassificadorClipGateway classificador, ParametrosTriagem parametros) {
+  public TriagemFotoService(FotoGateway fotos, ClassificadorGateway classificador, ParametrosTriagem parametros) {
     this.fotos = fotos;
     this.classificador = classificador;
     this.parametros = parametros;
   }
 
-  /** categoria já vem normalizada pelo catálogo. Falhas de rotina voltam como status, não como exceção. */
   public VeredictoFoto analisar(String urlFoto, String categoria) {
     FotoCarregada foto;
     try {

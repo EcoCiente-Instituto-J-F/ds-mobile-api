@@ -3,7 +3,6 @@ package br.com.ecociente.mobile.core.domain.validador;
 import java.util.List;
 
 /** Veredito da triagem automática da foto, ou falha tipada quando a foto não pôde ser analisada. */
-@com.fasterxml.jackson.databind.annotation.JsonNaming(com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy.class)
 public record VeredictoFoto(
     StatusTriagem status,
     Boolean pertinente,

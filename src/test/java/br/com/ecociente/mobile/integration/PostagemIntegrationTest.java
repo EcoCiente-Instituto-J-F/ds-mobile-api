@@ -73,14 +73,29 @@ import io.jsonwebtoken.security.Keys;
 })
 @Execution(ExecutionMode.SAME_THREAD)
 class PostagemIntegrationTest {
-    @org.springframework.test.context.bean.override.mockito.MockitoBean
-    private br.com.ecociente.mobile.core.service.validador.TriagemPostagemService
-            triagemSimulada;
 
-    @org.springframework.test.context.bean.override.mockito.MockitoBean
-    private br.com.ecociente.mobile.config.security.UsuarioDetailsService
-            usuarioDetailsServiceTeste;
+  @org.junit.jupiter.api.BeforeEach
+  void configurarTriagemParaEndpoints() {
+    org.mockito.Mockito.when(
+        triagemSimulada.triar(org.mockito.ArgumentMatchers.anyInt()))
+        .thenReturn(
+            new br.com.ecociente.mobile.core.domain.validador.VeredictoFoto(
+                br.com.ecociente.mobile.core.domain.validador.StatusTriagem.OK,
+                true,
+                "plastico",
+                "plastico",
+                0.99,
+                "hash-simulado",
+                java.util.List.of(),
+                java.util.List.of(),
+                "Triagem simulada para teste dos endpoints"));
+  }
 
+  @org.springframework.test.context.bean.override.mockito.MockitoBean
+  private br.com.ecociente.mobile.core.service.validador.TriagemPostagemService triagemSimulada;
+
+  @org.springframework.test.context.bean.override.mockito.MockitoBean
+  private br.com.ecociente.mobile.config.security.UsuarioDetailsService usuarioDetailsServiceTeste;
 
   private static final String SECRET = "0123456789abcdef0123456789abcdef";
 
@@ -100,23 +115,6 @@ class PostagemIntegrationTest {
 
   @BeforeEach
   void preparar() throws Exception {
-    // Configura a triagem simulada dos endpoints.
-    org.mockito.Mockito.when(
-        triagemSimulada.triar(org.mockito.ArgumentMatchers.anyInt())
-    ).thenReturn(
-        new br.com.ecociente.mobile.core.domain.validador.VeredictoFoto(
-            br.com.ecociente.mobile.core.domain.validador.StatusTriagem.OK,
-            true,
-            "plastico",
-            "plastico",
-            0.99,
-            "hash-simulado",
-            java.util.List.of(),
-            java.util.List.of(),
-            "Triagem simulada para o teste de endpoints"
-        )
-    );
-
     Config.USUARIO_RECEBIDO.set(null);
     try (Connection connection = dataSource.getConnection();
         Statement statement = connection.createStatement()) {
@@ -249,15 +247,26 @@ class PostagemIntegrationTest {
   }
 
   @Test
-  void deveRejeitarMoradorComTorreDeOutroCondominio() throws Exception {
-    jdbc.update("UPDATE tb_moradores SET torre_id = 2 WHERE usuario_id = 20");
+  void deveRejeitarMoradorComTorreDeOutroCondominio() {
+    var erro = assertThrows(
+        org.springframework.dao.DataIntegrityViolationException.class,
+        () -> jdbc.update("""
+            UPDATE tb_moradores
+            SET torre_id = 2
+            WHERE usuario_id = 20
+            """));
 
-    mvc.perform(post("/api/postagens")
-        .header("Authorization", bearer(20))
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(corpo("https://img.teste/t.jpg", "hash-t", 1, 1, haCincoMinutos())))
-        .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.codigo").value("TORRE_CONDOMINIO_INCONSISTENTE"));
+    assertTrue(
+        erro.getMostSpecificCause().getMessage()
+            .contains("fk_moradores_torre_condominio"));
+
+    Integer torreAtual = jdbc.queryForObject("""
+        SELECT torre_id
+        FROM tb_moradores
+        WHERE usuario_id = 20
+        """, Integer.class);
+
+    assertEquals(Integer.valueOf(1), torreAtual);
   }
 
   @Test

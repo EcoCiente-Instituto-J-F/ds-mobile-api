@@ -2,8 +2,8 @@ package br.com.ecociente.mobile.core.service.calendario;
 
 import java.util.Optional;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import br.com.ecociente.mobile.core.domain.calendario.PaginaCalendario;
+import br.com.ecociente.mobile.core.domain.calendario.PaginacaoCalendario;
 import org.springframework.stereotype.Component;
 
 import br.com.ecociente.mobile.core.domain.calendario.AgendamentoColeta;
@@ -24,8 +24,8 @@ public class ConsultaSindico implements ConsultaAgendamentoPorPerfil{
   }
   
   @Override
-  public Page<AgendamentoColeta> listar(Integer usuarioId, AgendamentoFiltro filtro, Pageable pageable ){
-    return agendamentoConsultaGateway.buscarPorSindico(usuarioId, filtro, pageable);
+  public PaginaCalendario<AgendamentoColeta> listar(Integer usuarioId, AgendamentoFiltro filtro, PaginacaoCalendario PaginacaoCalendario ){
+    return agendamentoConsultaGateway.buscarPorSindico(usuarioId, filtro, PaginacaoCalendario);
   }
 
   @Override
