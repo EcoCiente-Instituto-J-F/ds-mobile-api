@@ -3,6 +3,8 @@ package br.com.ecociente.mobile.core.service.pontuacao;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import br.com.ecociente.mobile.core.service.notificacoes.PushService;
+
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,7 @@ public class PostagemValidacaoService {
     private final PostagemGateway postagemGateway;
     private final PontuacaoService pontuacaoService;
     private final ConfiancaPostagemGateway confiancaGateway;
+    private final PushService push;
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void encerrar(Integer postagemId) {
@@ -47,6 +50,7 @@ public class PostagemValidacaoService {
         validacaoGateway.encerrarJanela(postagemId);
 
         atualizarPontuacao(postagemId);
+        notificarAprovacao(postagemId);
         confiancaGateway.atualizarEnvolvidos(postagemId);
     }
 
@@ -71,6 +75,14 @@ public class PostagemValidacaoService {
         pontuacaoService.reconciliarPostagem(
                 postagemId,
                 "voto-" + postagemId + "-" + UUID.randomUUID());
+    }
+
+    private void notificarAprovacao(Integer postagemId) {
+        var postagem = bloquearPostagem(postagemId);
+        if (Boolean.TRUE.equals(postagem.getPontuacaoAtiva()) && postagem.getResolvidoEm() != null) {
+            push.criar(postagem.getUsuarioId(), "ecoregistro_aprovado", "postagem_aprovada:" + postagemId,
+                    "Seu EcoRegistro foi validado! 🌿", "Seu registro passou pela validação da comunidade.", "home", "Ver registro");
+        }
     }
 
     private void atualizarPontuacao(Integer postagemId) {

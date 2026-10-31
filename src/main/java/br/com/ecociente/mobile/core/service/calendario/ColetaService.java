@@ -3,6 +3,8 @@ package br.com.ecociente.mobile.core.service.calendario;
 import java.time.OffsetDateTime;
 
 import org.springframework.stereotype.Service;
+import br.com.ecociente.mobile.core.service.notificacoes.PushService;
+
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.ecociente.mobile.core.domain.calendario.Coleta;
@@ -19,9 +21,11 @@ import br.com.ecociente.mobile.core.gateway.calendario.ColetaGateway;
 public class ColetaService {
 
   private final ColetaGateway gateway;
+  private final PushService push;
 
-  public ColetaService(ColetaGateway gateway) {
+  public ColetaService(ColetaGateway gateway, PushService push) {
     this.gateway = gateway;
+    this.push = push;
   }
 
   @Transactional
@@ -60,10 +64,13 @@ public class ColetaService {
           "O mesmo usuário não pode representar as duas partes");
     }
 
-    return gateway.criar(
+    Coleta coleta = gateway.criar(
         usuarioId,
         sindico ? "CONDOMINIO" : "COOPERATIVA",
         entrada);
+    push.criar(usuarioId, "calendario", "coleta_criada:" + coleta.id(),
+        "Solicitação registrada ♻️", "Sua solicitação de coleta foi registrada.", "calendario", null);
+    return coleta;
   }
 
   @Transactional
@@ -118,10 +125,17 @@ public class ColetaService {
             ? coleta.respondidoPorUsuarioId()
             : usuarioId;
 
-    return gateway.atualizarStatus(
+    Coleta atualizada = gateway.atualizarStatus(
         coletaId,
         novoStatus,
         respondidoPor);
+    String tipo = novoStatus == StatusType.CONFIRMADO ? "solicitacao_aceita"
+        : novoStatus == StatusType.RECUSADO ? "solicitacao_recusada" : "calendario";
+    push.criar(coleta.solicitadoPorUsuarioId(), tipo,
+        "coleta_status:" + coletaId + ":" + novoStatus,
+        novoStatus == StatusType.CONFIRMADO ? "Coleta confirmada ✅" : "Atualização da coleta 🚛",
+        "A situação da sua coleta foi atualizada.", "calendario", "Ver detalhes");
+    return atualizada;
   }
 
   private void validarDestinatario(

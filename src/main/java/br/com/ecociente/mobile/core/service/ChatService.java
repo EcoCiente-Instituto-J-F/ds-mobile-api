@@ -3,6 +3,8 @@ package br.com.ecociente.mobile.core.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import br.com.ecociente.mobile.core.service.notificacoes.PushService;
+
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,9 +18,11 @@ import br.com.ecociente.mobile.core.gateway.ChatGateway;
 public class ChatService {
 
   private final ChatGateway gateway;
+  private final PushService push;
 
-  public ChatService(ChatGateway gateway) {
+  public ChatService(ChatGateway gateway, PushService push) {
     this.gateway = gateway;
+    this.push = push;
   }
 
   @Transactional
