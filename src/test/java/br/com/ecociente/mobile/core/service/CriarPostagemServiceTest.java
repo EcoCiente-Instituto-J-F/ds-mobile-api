@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -16,8 +15,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 
-import br.com.ecociente.mobile.core.domain.educacao.ContextoCondominialQuiz;
 import br.com.ecociente.mobile.core.domain.Postagem;
+import br.com.ecociente.mobile.core.domain.educacao.ContextoCondominialQuiz;
 import br.com.ecociente.mobile.core.exception.PostagemException;
 import br.com.ecociente.mobile.core.exception.PostagemException.Tipo;
 import br.com.ecociente.mobile.core.gateway.PostagemGateway;
@@ -183,7 +182,10 @@ class CriarPostagemServiceTest {
   void deveTratarCorridaDeHashRepetidoComoConflito() {
     vinculoOk();
     when(gateway.inserir(any(), any(), any(), any(), any(), any(), any()))
-        .thenThrow(new DuplicateKeyException("violates constraint uq_postagens_hash_foto"));
+        .thenThrow(new PostagemException(
+            PostagemException.Tipo.CONFLITO,
+            "FOTO_JA_UTILIZADA",
+            "Esta foto já foi utilizada em outra postagem"));
 
     var erro = assertThrows(
         PostagemException.class,
@@ -196,8 +198,10 @@ class CriarPostagemServiceTest {
   void deveTratarRestricaoDeCapturaDoBancoComoDadoInvalido() {
     vinculoOk();
     when(gateway.inserir(any(), any(), any(), any(), any(), any(), any()))
-        .thenThrow(new DataIntegrityViolationException(
-            "violates check constraint ck_postagens_capturada_em"));
+        .thenThrow(new PostagemException(
+            PostagemException.Tipo.DADOS_INVALIDOS,
+            "CAPTURA_INVALIDA",
+            "A data de captura não pode estar no futuro"));
 
     var erro = assertThrows(
         PostagemException.class,

@@ -9,8 +9,8 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
 import br.com.ecociente.mobile.core.domain.CategoriaResiduo;
-import br.com.ecociente.mobile.core.domain.educacao.ContextoCondominialQuiz;
 import br.com.ecociente.mobile.core.domain.Postagem;
+import br.com.ecociente.mobile.core.domain.educacao.ContextoCondominialQuiz;
 import br.com.ecociente.mobile.core.exception.PostagemException;
 import br.com.ecociente.mobile.core.gateway.PostagemGateway;
 

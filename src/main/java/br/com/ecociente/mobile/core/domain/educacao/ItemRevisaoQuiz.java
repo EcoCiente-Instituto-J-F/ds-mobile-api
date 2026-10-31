@@ -6,7 +6,8 @@ public record ItemRevisaoQuiz(
     Integer ordem,
     Alternativa escolhida,
     Alternativa correta,
-    boolean acertouNaTentativa) {
+    boolean acertouNaTentativa,
+    String explicacao) {
 
   public record Alternativa(
       Integer id,

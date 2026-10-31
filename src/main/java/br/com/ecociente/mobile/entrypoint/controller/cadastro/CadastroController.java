@@ -3,9 +3,9 @@ package br.com.ecociente.mobile.entrypoint.controller.cadastro;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.ecociente.mobile.core.usecase.cadastro.input.CadastrarCooperativaUseCase;
-import br.com.ecociente.mobile.core.usecase.cadastro.input.CadastrarMoradorUseCase;
-import br.com.ecociente.mobile.core.usecase.cadastro.input.CadastroUsuarioComumUseCase;
+import br.com.ecociente.mobile.core.service.cadastro.CadastrarCooperativaService;
+import br.com.ecociente.mobile.core.service.cadastro.CadastrarMoradorService;
+import br.com.ecociente.mobile.core.service.cadastro.CadastrarUsuarioComumService;
 import br.com.ecociente.mobile.entrypoint.dto.cadastro.request.ComumCadastroRequestDto;
 import br.com.ecociente.mobile.entrypoint.dto.cadastro.request.CooperativaCadastroResquestDto;
 import br.com.ecociente.mobile.entrypoint.dto.cadastro.request.MoradorCadastroRequestDto;
@@ -33,9 +33,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 @AllArgsConstructor 
 public class CadastroController {
 
-  private final CadastroUsuarioComumUseCase cadastroUsuarioComumUseCase;
-  private final CadastrarMoradorUseCase cadastrarMoradorUseCase;
-  private final CadastrarCooperativaUseCase cadastrarCooperativaUseCase;
+  private final CadastrarUsuarioComumService CadastrarUsuarioComumService;
+  private final CadastrarMoradorService CadastrarMoradorService;
+  private final CadastrarCooperativaService CadastrarCooperativaService;
   private final UsuarioMapper usuarioMapper;
 
   @PostMapping("/comum")
@@ -49,7 +49,7 @@ public class CadastroController {
     @ApiResponse (responseCode = "500", description = "Erro no servidor")
   })
   public ResponseEntity<ComumCadastroResponseDto> cadastroComum(@Valid @RequestBody ComumCadastroRequestDto requestDto) {
-    var saida = cadastroUsuarioComumUseCase.executar(
+    var saida = CadastrarUsuarioComumService.executar(
       requestDto.nomeUsuario(),
       requestDto.email(),
       requestDto.senha(),
@@ -75,7 +75,7 @@ public class CadastroController {
     @ApiResponse (responseCode = "500", description = "Erro no servidor")
   })
   public ResponseEntity<MoradorCadastroResponseDto> cadastrarMorador (@Valid @RequestBody MoradorCadastroRequestDto requestDto) {
-    var saida = cadastrarMoradorUseCase.executar(
+    var saida = CadastrarMoradorService.executar(
       requestDto.nomeUsuario(),
       requestDto.email(),
       requestDto.senha(),
@@ -101,7 +101,7 @@ public class CadastroController {
     @ApiResponse (responseCode = "500", description = "Erro no servidor")
   })
   public ResponseEntity<CooperativaCadastroResponseDto> cadastrarCooperativa (@Valid @RequestBody CooperativaCadastroResquestDto requestDto) {
-    var saida = cadastrarCooperativaUseCase.executar(
+    var saida = CadastrarCooperativaService.executar(
       requestDto.nomeResponsavel(),
       requestDto.email(),
       requestDto.senha(),

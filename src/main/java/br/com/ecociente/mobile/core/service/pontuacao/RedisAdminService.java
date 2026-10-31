@@ -3,8 +3,7 @@ package br.com.ecociente.mobile.core.service.pontuacao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisCallback;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import br.com.ecociente.mobile.core.gateway.pontuacao.DiagnosticoRedisGateway;
 import org.springframework.stereotype.Service;
 
 import br.com.ecociente.mobile.core.gateway.pontuacao.SincronizacaoPontuacaoGateway;
@@ -17,13 +16,13 @@ public class RedisAdminService {
 
     private final SincronizacaoPontuacaoGateway gateway;
     private final SincronizacaoPontuacaoService service;
-    private final StringRedisTemplate redisTemplate;
+    private final DiagnosticoRedisGateway diagnosticoRedisGateway;
     private final int batchSize;
 
     public RedisAdminService(
     SincronizacaoPontuacaoGateway gateway,
     SincronizacaoPontuacaoService service,
-    StringRedisTemplate redisTemplate,
+    DiagnosticoRedisGateway diagnosticoRedisGateway,
     @Value("${app.ranking.sync-batch-size:100}") int batchSize
 ) {
     if (batchSize < 1 || batchSize > 1000) {
@@ -34,7 +33,7 @@ public class RedisAdminService {
 
     this.gateway = gateway;
     this.service = service;
-    this.redisTemplate = redisTemplate;
+    this.diagnosticoRedisGateway = diagnosticoRedisGateway;
     this.batchSize = batchSize;
 }
 
@@ -71,29 +70,11 @@ public class RedisAdminService {
     }
 
     public DiagnosticoRedis consultarStatus() {
-        boolean disponivel;
-
-        try {
-            Boolean resposta = redisTemplate.execute(
-                (RedisCallback<Boolean>) connection ->
-                    "PONG".equalsIgnoreCase(connection.ping())
-            );
-
-            disponivel = Boolean.TRUE.equals(resposta);
-        } catch (RuntimeException exception) {
-            disponivel = false;
-
-            log.warn(
-                "Redis indisponível durante consulta de diagnóstico",
-                exception
-            );
-        }
-
         return new DiagnosticoRedis(
-            disponivel,
-            gateway.contarPendentes()
-        );
+                diagnosticoRedisGateway.estaDisponivel(),
+                gateway.contarPendentes());
     }
+
 
     private void registrarFalha(Long movimentacaoId) {
         try {

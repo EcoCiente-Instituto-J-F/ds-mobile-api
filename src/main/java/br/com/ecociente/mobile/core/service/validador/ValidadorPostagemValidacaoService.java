@@ -9,14 +9,14 @@ import br.com.ecociente.mobile.core.domain.validador.ResultadoVoto;
 import br.com.ecociente.mobile.core.exception.validador.NotFoundException;
 import br.com.ecociente.mobile.core.exception.validador.PermissaoNegadaException;
 import br.com.ecociente.mobile.core.service.pontuacao.PostagemValidacaoService;
-import br.com.ecociente.mobile.dataprovider.validador.gateway.PostagemValidacaoJdbcGateway;
+import br.com.ecociente.mobile.core.gateway.validador.PostagemValidacaoGateway;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class ValidadorPostagemValidacaoService {
 
-  private final PostagemValidacaoJdbcGateway gateway;
+  private final PostagemValidacaoGateway gateway;
   private final PostagemValidacaoService pontuacao;
 
   @Transactional
@@ -35,8 +35,6 @@ public class ValidadorPostagemValidacaoService {
           "O autor não pode votar na própria postagem.");
     }
 
-    // Mantém a ordem de bloqueios usada pela pontuação:
-    // usuário autor, depois postagem.
     int autorBloqueado = pontuacao.prepararVoto(postagemId);
 
     if (autorBloqueado == usuarioId) {

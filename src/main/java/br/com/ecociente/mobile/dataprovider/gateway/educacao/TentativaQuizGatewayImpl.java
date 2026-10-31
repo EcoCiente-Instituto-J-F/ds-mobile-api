@@ -251,6 +251,7 @@ public class TentativaQuizGatewayImpl implements TentativaQuizGateway {
         SELECT p.id_pergunta,
                p.enunciado,
                p.ordem,
+               p.explicacao,
                escolhida.id_alternativa AS escolhida_id,
                escolhida.texto_alternativa AS escolhida_texto,
                r.correta AS acertou_na_tentativa,
@@ -295,7 +296,8 @@ public class TentativaQuizGatewayImpl implements TentativaQuizGateway {
               new ItemRevisaoQuiz.Alternativa(
                   rs.getInt("correta_id"),
                   rs.getString("correta_texto")),
-              rs.getBoolean("acertou_na_tentativa"));
+              rs.getBoolean("acertou_na_tentativa"),
+              rs.getString("explicacao"));
         },
         tentativaId);
   }

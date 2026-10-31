@@ -1,5 +1,9 @@
 package br.com.ecociente.mobile.dataprovider.gateway.calendario;
 
+import br.com.ecociente.mobile.core.domain.calendario.PaginaCalendario;
+import br.com.ecociente.mobile.core.domain.calendario.PaginacaoCalendario;
+import br.com.ecociente.mobile.dataprovider.mapper.calendario.PaginacaoCalendarioPersistenceMapper;
+
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -30,7 +34,23 @@ public class AgendamentoConsultaGatewayImpl implements AgendamentoConsultaGatewa
 
   
   @Override
-  public Page<AgendamentoColeta> buscarPorSindico(Integer usuarioId, AgendamentoFiltro filtro, Pageable pageable) {
+  public PaginaCalendario<AgendamentoColeta> buscarPorSindico(
+      Integer usuarioId,
+      AgendamentoFiltro filtro,
+      PaginacaoCalendario paginacao) {
+
+    var pageable = PaginacaoCalendarioPersistenceMapper.toPageable(
+        paginacao);
+
+    return PaginacaoCalendarioPersistenceMapper.toDomain(
+        buscarPorSindicoPersistencia(usuarioId, filtro, pageable),
+        paginacao);
+  }
+
+  private Page<AgendamentoColeta> buscarPorSindicoPersistencia(
+      Integer usuarioId,
+      AgendamentoFiltro filtro,
+      Pageable pageable) {
     return complementarPagina(agendamentoColetaRepository
             .buscarPorSindico(
               usuarioId, 
@@ -45,7 +65,23 @@ public class AgendamentoConsultaGatewayImpl implements AgendamentoConsultaGatewa
 }
 
   @Override
-  public Page<AgendamentoColeta> buscarPorCooperativa(Integer usuarioId, AgendamentoFiltro filtro, Pageable pageable) {
+  public PaginaCalendario<AgendamentoColeta> buscarPorCooperativa(
+      Integer usuarioId,
+      AgendamentoFiltro filtro,
+      PaginacaoCalendario paginacao) {
+
+    var pageable = PaginacaoCalendarioPersistenceMapper.toPageable(
+        paginacao);
+
+    return PaginacaoCalendarioPersistenceMapper.toDomain(
+        buscarPorCooperativaPersistencia(usuarioId, filtro, pageable),
+        paginacao);
+  }
+
+  private Page<AgendamentoColeta> buscarPorCooperativaPersistencia(
+      Integer usuarioId,
+      AgendamentoFiltro filtro,
+      Pageable pageable) {
     return complementarPagina(agendamentoColetaRepository
             .buscarPorCooperativa(
               usuarioId, 

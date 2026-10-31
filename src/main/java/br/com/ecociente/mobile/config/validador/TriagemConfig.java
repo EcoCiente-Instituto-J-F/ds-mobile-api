@@ -1,5 +1,6 @@
 package br.com.ecociente.mobile.config.validador;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import br.com.ecociente.mobile.core.domain.validador.Categorias;
 import br.com.ecociente.mobile.core.domain.validador.ParametrosTriagem;
 
+@ConditionalOnProperty(name = "app.validador.ativo", havingValue = "true", matchIfMissing = true)
 @Configuration
 @org.springframework.boot.context.properties.EnableConfigurationProperties(PropriedadesValidador.class)
 public class TriagemConfig {
