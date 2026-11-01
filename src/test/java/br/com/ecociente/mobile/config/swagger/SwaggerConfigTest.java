@@ -39,11 +39,10 @@ class SwaggerConfigTest {
   }
 
   @Test
-  void deveListarOServidorLocalNaPortaDaApiEAProducao() {
+  void deveReferenciarServidorAtualNaDocumentacao() {
     OpenAPIDefinition definicao = SwaggerConfig.class.getAnnotation(OpenAPIDefinition.class);
 
-    assertEquals(2, definicao.servers().length);
-    assertEquals("http://localhost:9654", definicao.servers()[0].url());
-    assertEquals("https://ds-mobile-api.onrender.com", definicao.servers()[1].url());
+    assertEquals(1, definicao.servers().length);
+    assertEquals("/", definicao.servers()[0].url());
   }
 }
