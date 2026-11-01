@@ -15,6 +15,7 @@ import br.com.ecociente.mobile.core.imagem.validador.DHash;
 import br.com.ecociente.mobile.core.gateway.validador.FotoGateway;
 import br.com.ecociente.mobile.core.gateway.validador.ClassificadorGateway;
 
+@ConditionalOnProperty(name = "app.validador.ativo", havingValue = "true", matchIfMissing = true)
 @Service
 public class TriagemFotoService {
 
