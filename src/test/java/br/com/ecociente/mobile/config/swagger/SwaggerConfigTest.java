@@ -45,7 +45,7 @@ class SwaggerConfigTest {
   }
 
   @Test
-  void deveUsarOServidorAtualComUrlRelativa() {
+  void deveReferenciarServidorAtualNaDocumentacao() {
     OpenAPIDefinition definicao = SwaggerConfig.class.getAnnotation(OpenAPIDefinition.class);
 
     assertEquals(1, definicao.servers().length);
