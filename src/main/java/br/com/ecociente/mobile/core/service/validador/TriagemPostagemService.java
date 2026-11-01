@@ -16,6 +16,7 @@ import br.com.ecociente.mobile.core.exception.validador.NotFoundException;
 import br.com.ecociente.mobile.core.exception.validador.ServicoOcupadoException;
 import br.com.ecociente.mobile.core.gateway.validador.PostagemValidacaoGateway;
 
+@ConditionalOnProperty(name = "app.validador.ativo", havingValue = "true", matchIfMissing = true)
 @Service
 public class TriagemPostagemService {
 

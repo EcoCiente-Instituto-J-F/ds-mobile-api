@@ -50,7 +50,6 @@ import br.com.ecociente.mobile.dataprovider.validador.visao.ModeloClip;
         "app.mail.remetente=teste@ecociente.test",
 
         "app.firebase.credenciais={}",
-        "app.senha.url-redefinicao=http://localhost/redefinir-senha",
 
         "spring.data.redis.host=localhost",
         "spring.data.redis.port=6379",

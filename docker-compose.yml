@@ -5,13 +5,26 @@ services:
       context: .
       dockerfile: Dockerfile
 
-    image: mobile:1.0.0
+    image: ds-mobile-api:local
     container_name: mobile
 
     ports:
       - "${APP_PORT:-8080}:8080"
 
+    # O .env não entra na imagem (.dockerignore); as variáveis chegam ao container por aqui.
+    # Dentro do container, "localhost" é o próprio container: use host.docker.internal
+    # (ou o nome do serviço) em DB_URL e REDIS_HOST.
+    env_file:
+      - .env
+
     environment:
       SERVER_PORT: "8080"
+
+    # Com VALIDADOR_ATIVO=true, monte a pasta do CLIP e aponte CLIP_DIR=/modelos/clip:
+    # volumes:
+    #   - ./modelos/clip-vit-base-patch32:/modelos/clip:ro
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
     restart: unless-stopped

@@ -20,9 +20,6 @@ import ai.onnxruntime.OrtSession;
  */
 public final class ModeloClip implements AutoCloseable {
 
-  /** Modelo de origem dos pesos: a cabeça treinada guarda este nome e o serviço recusa outro CLIP. */
-  public static final String MODELO = "openai/clip-vit-base-patch32";
-
   private final OrtEnvironment ambiente;
   private final OrtSession sessaoVisao;
   private final OrtSession sessaoTexto;
@@ -35,7 +32,7 @@ public final class ModeloClip implements AutoCloseable {
     this.tokenizador = new TokenizadorClip(diretorio.resolve("tokenizer.json"));
   }
 
-  /** Embedding da imagem no espaço do CLIP, sem normalizar (entrada da cabeça treinada). */
+  /** Embedding da imagem no espaço do CLIP, sem normalizar. */
   public float[] embeddingImagem(BufferedImage imagem) {
     float[] tensor = PreprocessamentoClip.paraTensor(imagem);
     String entrada = sessaoVisao.getInputNames().iterator().next();

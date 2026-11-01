@@ -12,9 +12,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import br.com.ecociente.mobile.core.gateway.senha.FirebaseSenhaGateway;
+import br.com.ecociente.mobile.core.gateway.senha.TentativasRecuperacaoSenhaGateway;
 
 import java.security.SecureRandom;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -24,6 +26,9 @@ import java.util.regex.Pattern;
 public class SenhaService {
 
         private static final int VALIDADE_TOKEN_MINUTOS = 15;
+
+        /** Códigos errados aceitos por e-mail dentro de uma janela de VALIDADE_TOKEN_MINUTOS. */
+        static final int MAX_TENTATIVAS_CODIGO = 5;
 
         private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -38,6 +43,7 @@ public class SenhaService {
         private final SenhaEncoderGateway senhaEncoderGateway;
         private final EmailGateway emailGateway;
         private final FirebaseSenhaGateway firebaseSenhaGateway;
+        private final TentativasRecuperacaoSenhaGateway tentativasGateway;
 
         @Transactional
         public Timestamp solicitarRecuperacao(String email) {
@@ -86,24 +92,31 @@ public class SenhaService {
                         throw tokenInvalido();
                 }
 
+                // O código tem 4 dígitos: sem limite, dá para testar as 10 mil combinações.
+                String chaveTentativas = normalizarEmail(email);
+
+                if (tentativasGateway.falhas(chaveTentativas) >= MAX_TENTATIVAS_CODIGO) {
+                        throw tentativasEsgotadas();
+                }
+
                 Usuario usuario = usuarioGateway.buscarPorEmail(email)
-                                .orElseThrow(this::tokenInvalido);
+                                .orElseThrow(() -> falhaDeCodigo(chaveTentativas));
 
                 RecuperacaoSenha recuperacao = recuperacaoSenhaGateway
                                 .buscarUltimaPorUsuarioId(usuario.getId())
-                                .orElseThrow(this::tokenInvalido);
+                                .orElseThrow(() -> falhaDeCodigo(chaveTentativas));
 
                 Timestamp momento = agora();
 
                 if (recuperacao.getUtilizadoEm() != null
                                 || !recuperacao.getExpiraEm().after(momento)) {
-                        throw tokenInvalido();
+                        throw falhaDeCodigo(chaveTentativas);
                 }
 
                 if (!senhaEncoderGateway.corresponde(
                                 token,
                                 recuperacao.getTokenHash())) {
-                        throw tokenInvalido();
+                        throw falhaDeCodigo(chaveTentativas);
                 }
 
                 String senhaHash = senhaEncoderGateway.gerarHash(novaSenha);
@@ -126,6 +139,8 @@ public class SenhaService {
                 recuperacaoSenhaGateway.invalidarPendentes(
                                 usuario.getId(),
                                 momento);
+
+                tentativasGateway.limpar(chaveTentativas);
 
                 return agora();
         }
@@ -193,6 +208,28 @@ public class SenhaService {
         private RegraNegocioException tokenInvalido() {
                 return new RegraNegocioException(
                                 "Código inválido, expirado ou já utilizado.");
+        }
+
+        /**
+         * Conta a falha antes de responder. A contagem fica no Redis e não volta no rollback da
+         * transação, por isso o bloqueio vale mesmo com a exceção.
+         */
+        private RegraNegocioException falhaDeCodigo(String chaveTentativas) {
+                tentativasGateway.registrarFalha(
+                                chaveTentativas,
+                                Duration.ofMinutes(VALIDADE_TOKEN_MINUTOS));
+                return tokenInvalido();
+        }
+
+        private RegraNegocioException tentativasEsgotadas() {
+                return new RegraNegocioException(
+                                "Muitas tentativas com código inválido. Aguarde "
+                                                + VALIDADE_TOKEN_MINUTOS
+                                                + " minutos e solicite um novo código.");
+        }
+
+        private static String normalizarEmail(String email) {
+                return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
         }
 
         private Timestamp agora() {

@@ -43,6 +43,7 @@ import br.com.ecociente.mobile.core.exception.senha.SincronizacaoSenhaException;
 import br.com.ecociente.mobile.core.gateway.senha.EmailGateway;
 import br.com.ecociente.mobile.core.gateway.senha.FirebaseSenhaGateway;
 import br.com.ecociente.mobile.core.gateway.senha.SenhaEncoderGateway;
+import br.com.ecociente.mobile.core.gateway.senha.TentativasRecuperacaoSenhaGateway;
 import br.com.ecociente.mobile.core.service.senha.SenhaService;
 import br.com.ecociente.mobile.dataprovider.gateway.senha.RecuperarSenhaGatewayImpl;
 import br.com.ecociente.mobile.dataprovider.gateway.senha.UsuarioSenhaGatewayImpl;
@@ -369,6 +370,11 @@ class SenhaPersistenciaIntegrationTest {
         @Bean
         EmailGateway emailGateway() {
             return mock(EmailGateway.class);
+        }
+
+        @Bean
+        TentativasRecuperacaoSenhaGateway tentativasRecuperacaoSenhaGateway() {
+            return mock(TentativasRecuperacaoSenhaGateway.class);
         }
     }
 }

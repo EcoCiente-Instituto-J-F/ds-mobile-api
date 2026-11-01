@@ -21,3 +21,7 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# Cópias locais feitas antes de refatorações (não versionar)
+backup-*/
+*.sql.sql

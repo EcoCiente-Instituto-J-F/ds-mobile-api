@@ -5,7 +5,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.customizers.OperationCustomizer;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -27,7 +30,8 @@ import io.swagger.v3.oas.models.responses.ApiResponses;
 @OpenAPIDefinition(
     info = @Info(
         title = "EcoCiente — API Mobile",
-        version = "1.1.0",
+        // Substituída pela versão do build.gradle (build-info) em versaoDoBuild.
+        version = "dev",
         description = """
             API unificada de autenticação, cadastro, recuperação de senha,
             educação, calendário, chat, descartes, validação e pontuação.
@@ -56,6 +60,13 @@ public class SwaggerConfig {
     public static final String ESQUEMA_BEARER = "bearerAuth";
 
     private static final Map<String, Documento> DOCUMENTOS = documentos();
+
+    /** A versão exibida no Swagger é a mesma do build.gradle, que também nomeia a imagem Docker. */
+    @Bean
+    public OpenApiCustomizer versaoDoBuild(ObjectProvider<BuildProperties> build) {
+        return openApi -> build.ifAvailable(
+                propriedades -> openApi.getInfo().setVersion(propriedades.getVersion()));
+    }
 
     @Bean
     public OperationCustomizer documentacaoEcociente() {

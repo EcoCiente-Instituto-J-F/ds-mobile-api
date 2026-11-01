@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
@@ -23,6 +24,7 @@ import br.com.ecociente.mobile.core.gateway.senha.EmailGateway;
 import br.com.ecociente.mobile.core.gateway.senha.FirebaseSenhaGateway;
 import br.com.ecociente.mobile.core.gateway.senha.RecuperacaoSenhaGateway;
 import br.com.ecociente.mobile.core.gateway.senha.SenhaEncoderGateway;
+import br.com.ecociente.mobile.core.gateway.senha.TentativasRecuperacaoSenhaGateway;
 import br.com.ecociente.mobile.core.gateway.senha.UsuarioGateway;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,8 +50,70 @@ class RedefinirSenhaServiceTest {
     @Mock
     private FirebaseSenhaGateway firebaseSenhaGateway;
 
+    @Mock
+    private TentativasRecuperacaoSenhaGateway tentativasGateway;
+
     @InjectMocks
     private SenhaService service;
+
+    @Test
+    void deveBloquearAposCincoFalhasMesmoComCodigoCorreto() {
+        when(tentativasGateway.falhas(EMAIL)).thenReturn(5);
+
+        var erro = assertThrows(RegraNegocioException.class, () -> redefinir(TOKEN));
+
+        assertTrue(erro.getMessage().contains("tentativas"));
+        verifyNoInteractions(
+                usuarioGateway,
+                recuperacaoSenhaGateway,
+                senhaEncoderGateway,
+                firebaseSenhaGateway);
+        verify(tentativasGateway, never()).registrarFalha(anyString(), any());
+    }
+
+    @Test
+    void deveContarAFalhaQuandoOCodigoNaoCorresponde() {
+        prepararRecuperacao(
+                Instant.now().plus(1, ChronoUnit.HOURS),
+                null);
+
+        when(senhaEncoderGateway.corresponde(TOKEN, "hash-token"))
+                .thenReturn(false);
+
+        assertThrows(RegraNegocioException.class, () -> redefinir(TOKEN));
+
+        verify(tentativasGateway).registrarFalha(EMAIL, Duration.ofMinutes(15));
+    }
+
+    @Test
+    void deveContarAFalhaTambemParaEmailNaoCadastrado() {
+        when(usuarioGateway.buscarPorEmail(EMAIL))
+                .thenReturn(Optional.empty());
+
+        assertThrows(RegraNegocioException.class, () -> redefinir(TOKEN));
+
+        verify(tentativasGateway).registrarFalha(EMAIL, Duration.ofMinutes(15));
+    }
+
+    @Test
+    void deveUsarOEmailNormalizadoComoChaveDasTentativas() {
+        when(usuarioGateway.buscarPorEmail(" Morador@Teste.COM "))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                RegraNegocioException.class,
+                () -> service.redefinirSenha(" Morador@Teste.COM ", TOKEN, NOVA_SENHA, NOVA_SENHA));
+
+        verify(tentativasGateway).falhas(EMAIL);
+        verify(tentativasGateway).registrarFalha(EMAIL, Duration.ofMinutes(15));
+    }
+
+    @Test
+    void naoContaFormatoInvalidoComoTentativa() {
+        assertThrows(RegraNegocioException.class, () -> redefinir("12ab"));
+
+        verifyNoInteractions(tentativasGateway);
+    }
 
     @Test
     void deveRedefinirSenhaSincronizarFirebaseEConsumirCodigo() {
@@ -84,6 +148,8 @@ class RedefinirSenhaServiceTest {
         ordem.verify(recuperacaoSenhaGateway)
                 .invalidarPendentes(eq(USUARIO_ID), any());
 
+        verify(tentativasGateway).limpar(EMAIL);
+        verify(tentativasGateway, never()).registrarFalha(anyString(), any());
         verifyNoInteractions(emailGateway);
     }
 
