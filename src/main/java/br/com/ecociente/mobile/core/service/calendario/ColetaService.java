@@ -68,8 +68,10 @@ public class ColetaService {
         usuarioId,
         sindico ? "CONDOMINIO" : "COOPERATIVA",
         entrada);
-    push.criar(usuarioId, "calendario", "coleta_criada:" + coleta.id(),
-        "Solicitação registrada ♻️", "Sua solicitação de coleta foi registrada.", "calendario", null);
+    if (push != null && coleta != null && coleta.id() != null) {
+      push.criar(usuarioId, "calendario", "coleta_criada:" + coleta.id(),
+          "Solicitação registrada ♻️", "Sua solicitação de coleta foi registrada.", "calendario", null);
+    }
     return coleta;
   }
 
@@ -129,12 +131,19 @@ public class ColetaService {
         coletaId,
         novoStatus,
         respondidoPor);
-    String tipo = novoStatus == StatusType.CONFIRMADO ? "solicitacao_aceita"
-        : novoStatus == StatusType.RECUSADO ? "solicitacao_recusada" : "calendario";
-    push.criar(coleta.solicitadoPorUsuarioId(), tipo,
-        "coleta_status:" + coletaId + ":" + novoStatus,
-        novoStatus == StatusType.CONFIRMADO ? "Coleta confirmada ✅" : "Atualização da coleta 🚛",
-        "A situação da sua coleta foi atualizada.", "calendario", "Ver detalhes");
+    // A resposta deve voltar SOMENTE ao solicitante original. Uma solicitacao
+    // iniciada por cooperativa nao pode gerar aviso de aceite exclusivo do sindico.
+    if (push != null && coleta.solicitadoPorUsuarioId() != null) {
+      boolean pedidoDoSindico = "CONDOMINIO".equals(coleta.origemSolicitacao());
+      String tipo = pedidoDoSindico && novoStatus == StatusType.CONFIRMADO
+          ? "solicitacao_aceita"
+          : pedidoDoSindico && novoStatus == StatusType.RECUSADO
+              ? "solicitacao_recusada" : "calendario";
+      push.criar(coleta.solicitadoPorUsuarioId(), tipo,
+          "coleta_status:" + coletaId + ":" + novoStatus,
+          novoStatus == StatusType.CONFIRMADO ? "Coleta confirmada ✅" : "Atualização da coleta 🚛",
+          "A situação da sua coleta foi atualizada.", "calendario", "Ver detalhes");
+    }
     return atualizada;
   }
 
