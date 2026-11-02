@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import br.com.ecociente.mobile.core.service.notificacoes.PushService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 
@@ -27,14 +30,20 @@ public class PushController {
     public record RegistrarDispositivoRequest(
             @NotBlank String instalacaoId,
             @NotBlank @Size(max = 1024) String token,
-            Map<String, Boolean> preferencias) {
+            @NotNull Map<String, Boolean> preferencias) {
     }
 
     @PostMapping("/dispositivos")
     public ResponseEntity<Void> registrar(
             @AuthenticationPrincipal Integer usuarioId,
             @Valid @RequestBody RegistrarDispositivoRequest request) throws JsonProcessingException {
-        Map<String, Boolean> preferencias = request.preferencias() == null ? Map.of() : request.preferencias();
+        Map<String, Boolean> preferencias = request.preferencias();
+        if (preferencias == null || preferencias.size() != 4
+                || !preferencias.keySet().equals(java.util.Set.of(
+                    "notificacoesGerais", "lembretesAvisos", "novasAtividades", "dicasSustentaveis"))
+                || preferencias.values().stream().anyMatch(java.util.Objects::isNull)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Preferencias incompletas");
+        }
         push.registrarDispositivo(usuarioId, request.instalacaoId(), request.token(),
                 mapper.writeValueAsString(preferencias));
         return ResponseEntity.noContent().build();

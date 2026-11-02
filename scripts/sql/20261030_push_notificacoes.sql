@@ -27,6 +27,9 @@ CREATE TABLE IF NOT EXISTS tb_push_dispositivos (
 CREATE INDEX IF NOT EXISTS idx_push_dispositivos_usuarios
   ON tb_push_dispositivos (usuario_id) WHERE ativo = TRUE;
 
+CREATE UNIQUE INDEX IF NOT EXISTS uq_push_token_ativo
+  ON tb_push_dispositivos (token_fcm) WHERE ativo = TRUE;
+
 CREATE TABLE IF NOT EXISTS tb_push_entregas (
   id_entrega BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   notificacao_id INTEGER NOT NULL REFERENCES tb_notificacoes(id_notificacao) ON DELETE CASCADE,

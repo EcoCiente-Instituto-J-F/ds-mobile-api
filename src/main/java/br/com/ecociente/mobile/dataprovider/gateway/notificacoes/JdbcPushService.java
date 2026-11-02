@@ -3,6 +3,10 @@ package br.com.ecociente.mobile.dataprovider.gateway.notificacoes;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +28,7 @@ public class JdbcPushService implements PushService {
     private static final Logger log = LoggerFactory.getLogger(JdbcPushService.class);
     private final JdbcTemplate jdbc;
     private final PlatformTransactionManager transactionManager;
+    private final ObjectMapper mapper;
 
     @Value("${app.push.enabled:false}")
     private boolean enabled;
@@ -37,6 +42,7 @@ public class JdbcPushService implements PushService {
                 || preferenciasJson == null || preferenciasJson.isBlank()) {
             throw new IllegalArgumentException("Instalacao, token ou preferencias invalidos");
         }
+        validarPreferencias(preferenciasJson);
         // Um token FCM pertence a uma unica instalacao ativa. Rotacao e reinstalacao nao devem gerar duplicatas.
         jdbc.update("""
                 UPDATE tb_push_dispositivos SET ativo = FALSE, atualizado_em = now()
@@ -55,6 +61,21 @@ public class JdbcPushService implements PushService {
                 """, instalacaoId, token, preferenciasJson, usuarioId);
         if (atualizadas != 1) {
             throw new IllegalArgumentException("Usuario inativo ou nao encontrado");
+        }
+    }
+
+    private void validarPreferencias(String json) {
+        try {
+            JsonNode preferencias = mapper.readTree(json);
+            if (preferencias == null || !preferencias.isObject() || preferencias.size() != 4
+                    || !preferencias.path("notificacoesGerais").isBoolean()
+                    || !preferencias.path("lembretesAvisos").isBoolean()
+                    || !preferencias.path("novasAtividades").isBoolean()
+                    || !preferencias.path("dicasSustentaveis").isBoolean()) {
+                throw new IllegalArgumentException("As quatro preferencias devem ser booleanas");
+            }
+        } catch (JsonProcessingException erro) {
+            throw new IllegalArgumentException("Preferencias invalidas", erro);
         }
     }
 

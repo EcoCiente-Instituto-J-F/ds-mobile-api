@@ -55,7 +55,7 @@ public class PushDispatchJob {
                            OR EXISTS (SELECT 1 FROM tb_sindicos s WHERE s.usuario_id = n.usuario_id))
                       AND n.chave_evento IS NOT NULL AND n.enviar_apos <= now()
                       AND n.data_envio >= now() - interval '48 hours'
-                      AND COALESCE(d.preferencias ->> 'notificacoesGerais', 'true') = 'true'
+                      AND d.preferencias ->> 'notificacoesGerais' = 'true'
                     ON CONFLICT DO NOTHING
                     """);
             List<Map<String, Object>> lotes = jdbc.queryForList("""
@@ -88,6 +88,7 @@ public class PushDispatchJob {
                            n.destino, n.acao, d.token_fcm, d.preferencias, d.ativo
                     FROM tb_notificacoes n
                     JOIN tb_push_dispositivos d ON d.usuario_id = n.usuario_id
+                    JOIN tb_usuarios u ON u.id_usuario = n.usuario_id AND u.ativo = TRUE
                     WHERE n.id_notificacao = ? AND d.instalacao_id = ?
                     """, notificacaoId, instalacaoId);
             if (registros.isEmpty() || !Boolean.TRUE.equals(registros.getFirst().get("ativo"))) {
@@ -99,8 +100,8 @@ public class PushDispatchJob {
                     registro.get("preferencias").toString(),
                     new TypeReference<Map<String, Boolean>>() {});
             String grupo = grupo((String)registro.get("tipo_notificacao"));
-            if (!preferencias.getOrDefault("notificacoesGerais", true)
-                    || !preferencias.getOrDefault(grupo, true)) {
+            if (!Boolean.TRUE.equals(preferencias.get("notificacoesGerais"))
+                    || !Boolean.TRUE.equals(preferencias.get(grupo))) {
                 descartar(entregaId, "Preferência desabilitada");
                 return;
             }
