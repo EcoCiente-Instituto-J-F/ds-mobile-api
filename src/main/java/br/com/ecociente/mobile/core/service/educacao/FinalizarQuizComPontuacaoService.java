@@ -3,6 +3,8 @@ package br.com.ecociente.mobile.core.service.educacao;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import br.com.ecociente.mobile.core.service.notificacoes.PushService;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +18,8 @@ public class FinalizarQuizComPontuacaoService {
 
   private final FinalizarTentativaQuizService finalizarService;
   private final PontuacaoQuizGateway pontuacaoGateway;
+  @Autowired(required = false)
+  private PushService push;
 
   public FinalizarQuizComPontuacaoService(
       FinalizarTentativaQuizService finalizarService,
@@ -40,6 +44,10 @@ public class FinalizarQuizComPontuacaoService {
             usuarioId)
         : ResultadoPontuacaoQuiz.naoAplicavel();
 
+    if (resultado.aprovado() && push != null) {
+      push.criar(usuarioId, "motivacional", "quiz_aprovado:" + tentativaId,
+          "Quiz concluído!", "Seu aprendizado faz diferença.", "quiz", null);
+    }
     return new ResultadoFinalizacaoQuiz(
         resultado,
         pontuacao);

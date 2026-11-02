@@ -3,6 +3,8 @@ package br.com.ecociente.mobile.core.service.pontuacao;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import br.com.ecociente.mobile.core.service.notificacoes.PushService;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,8 @@ public class PostagemValidacaoService {
     private final PostagemGateway postagemGateway;
     private final PontuacaoService pontuacaoService;
     private final ConfiancaPostagemGateway confiancaGateway;
+    @Autowired(required = false)
+    private PushService push;
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void encerrar(Integer postagemId) {
@@ -47,6 +51,13 @@ public class PostagemValidacaoService {
         validacaoGateway.encerrarJanela(postagemId);
 
         atualizarPontuacao(postagemId);
+        if (push != null) {
+            var atualizada = bloquearPostagem(postagemId);
+            if (Boolean.TRUE.equals(atualizada.getPontuacaoAtiva()) && atualizada.getResolvidoEm() != null) {
+                push.criar(atualizada.getUsuarioId(), "ecoregistro_aprovado", "postagem_aprovada:" + postagemId,
+                    "EcoRegistro validado!", "Seu registro foi aprovado.", "home", "Ver registro");
+            }
+        }
         confiancaGateway.atualizarEnvolvidos(postagemId);
     }
 
