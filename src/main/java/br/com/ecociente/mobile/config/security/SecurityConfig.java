@@ -52,6 +52,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/auth/login",
+                                "/auth/firebase",
                                 "/api/cadastro/comum",
                                 "/api/cadastro/morador",
                                 "/api/cadastro/cooperativa",

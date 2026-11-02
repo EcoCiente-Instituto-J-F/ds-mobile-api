@@ -30,6 +30,19 @@ public class AuthService {
     public SessaoAutenticada login(UsuarioCredenciais credenciais) {
         autenticadorCredenciaisPort.autenticar(credenciais.getEmail(), credenciais.getSenha());
         Usuario usuario = usuarioGateway.buscarPorEmail(credenciais.getEmail()).orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado"));
+        return criarSessao(usuario);
+    }
+
+    public SessaoAutenticada loginFirebase(String emailVerificado) {
+        Usuario usuario = usuarioGateway.buscarPorEmail(emailVerificado)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Conta não vinculada"));
+        if (!Boolean.TRUE.equals(usuario.getAtivo())) {
+            throw new RecursoNaoEncontradoException("Conta inativa");
+        }
+        return criarSessao(usuario);
+    }
+
+    private SessaoAutenticada criarSessao(Usuario usuario) {
         PerfilUsuarioType perfil = usuarioPerfilService.perfil(usuario);
         String token = tokenProvaiderPort.gerarToken(usuario, perfil);
         int expiracaoSegundos = Math.toIntExact(tokenProvaiderPort.getExpiracaoSegundos());
