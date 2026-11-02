@@ -5,12 +5,14 @@ import java.time.ZoneId;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import br.com.ecociente.mobile.core.service.notificacoes.PushService;
 
 @Component
+@ConditionalOnProperty(name = "app.push.enabled", havingValue = "true")
 public class PushEngagementJob {
     private final PushService push;
     private final boolean enabled;
