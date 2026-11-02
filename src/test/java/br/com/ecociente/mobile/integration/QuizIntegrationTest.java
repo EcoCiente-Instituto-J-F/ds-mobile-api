@@ -67,6 +67,9 @@ import io.jsonwebtoken.security.Keys;
 @AutoConfigureMockMvc
 @Sql("/sql/quizzes-test.sql")
 class QuizIntegrationTest {
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private br.com.ecociente.mobile.config.security.UsuarioDetailsService usuarioDetailsServiceTeste;
+
 
     private static final SecretKey KEY = Keys.hmacShaKeyFor(
         "segredo-testes-quiz-com-mais-de-32-caracteres"

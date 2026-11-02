@@ -65,6 +65,9 @@ import io.jsonwebtoken.security.Keys;
 @AutoConfigureMockMvc
 @Sql("/sql/usuario-perfil-test.sql")
 class UsuarioPerfilIntegrationTest {
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private br.com.ecociente.mobile.config.security.UsuarioDetailsService usuarioDetailsServiceTeste;
+
 
     private static final String ENDPOINT = "/api/usuarios/me";
 

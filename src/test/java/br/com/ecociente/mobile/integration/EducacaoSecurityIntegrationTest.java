@@ -71,6 +71,9 @@ import io.jsonwebtoken.security.Keys;
 @AutoConfigureMockMvc
 @Sql("/sql/aulas-test.sql")
 class EducacaoSecurityIntegrationTest {
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private br.com.ecociente.mobile.config.security.UsuarioDetailsService usuarioDetailsServiceTeste;
+
 
   private static final SecretKey KEY = Keys.hmacShaKeyFor(
       "segredo-testes-educacao-com-mais-de-32-caracteres"
