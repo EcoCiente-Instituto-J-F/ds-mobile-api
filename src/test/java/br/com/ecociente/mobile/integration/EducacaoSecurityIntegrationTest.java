@@ -315,6 +315,20 @@ class EducacaoSecurityIntegrationTest {
         .andExpect(jsonPath("$.authorities[0]").value("ROLE_MORADOR"));
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = {"/livez", "/readyz"})
+  void sondasDeSaudeDevemSerPublicas(String caminho) throws Exception {
+    mvc.perform(get(caminho))
+        .andExpect(status().isOk());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"/actuator/health", "/actuator/env", "/api/cursos"})
+  void endpointsInternosContinuamExigindoAutenticacao(String caminho) throws Exception {
+    mvc.perform(get(caminho))
+        .andExpect(status().isUnauthorized());
+  }
+
   @Test
   void deveProtegerEndpointDeVerificacaoDoPrincipal() throws Exception {
     mvc.perform(get("/teste/educacao/principal"))
