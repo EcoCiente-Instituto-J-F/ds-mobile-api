@@ -50,7 +50,10 @@ public class PushDispatchJob {
                     SELECT n.id_notificacao, d.instalacao_id
                     FROM tb_notificacoes n
                     JOIN tb_push_dispositivos d ON d.usuario_id = n.usuario_id AND d.ativo = TRUE
-                    WHERE n.chave_evento IS NOT NULL AND n.enviar_apos <= now()
+                    JOIN tb_usuarios u ON u.id_usuario = n.usuario_id AND u.ativo = TRUE
+                    WHERE (n.tipo_notificacao NOT IN ('solicitacao_aceita', 'solicitacao_recusada')
+                           OR EXISTS (SELECT 1 FROM tb_sindicos s WHERE s.usuario_id = n.usuario_id))
+                      AND n.chave_evento IS NOT NULL AND n.enviar_apos <= now()
                       AND n.data_envio >= now() - interval '48 hours'
                       AND COALESCE(d.preferencias ->> 'notificacoesGerais', 'true') = 'true'
                     ON CONFLICT DO NOTHING
