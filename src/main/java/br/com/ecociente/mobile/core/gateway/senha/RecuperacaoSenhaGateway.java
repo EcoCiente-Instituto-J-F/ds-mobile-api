@@ -1,7 +1,6 @@
 package br.com.ecociente.mobile.core.gateway.senha;
 
 import br.com.ecociente.mobile.core.domain.senha.RecuperacaoSenha;
-
 import java.sql.Timestamp;
 import java.util.Optional;
 

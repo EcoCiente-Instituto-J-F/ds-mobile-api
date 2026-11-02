@@ -6,17 +6,24 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter 
-@Setter 
-@NoArgsConstructor 
-@AllArgsConstructor 
-@Builder 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Endereco {
-  private Integer idEndereco;
-  private String cep;
-  private String estado;
-  private String cidade;
-  private String logradouro;
-  private String numero;
-  private String complemento;  
+
+    private Integer idEndereco;
+
+    private String cep;
+
+    private String estado;
+
+    private String cidade;
+
+    private String logradouro;
+
+    private String numero;
+
+    private String complemento;
 }

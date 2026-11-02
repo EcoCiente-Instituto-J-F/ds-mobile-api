@@ -1,7 +1,6 @@
 package br.com.ecociente.mobile.core.gateway.senha;
 
 import br.com.ecociente.mobile.core.domain.senha.Usuario;
-
 import java.util.Optional;
 
 public interface UsuarioGateway {

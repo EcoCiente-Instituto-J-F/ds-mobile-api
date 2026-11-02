@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import br.com.ecociente.mobile.core.domain.validador.ResultadoVoto;
 import br.com.ecociente.mobile.core.service.validador.ValidadorPostagemValidacaoService;
 import br.com.ecociente.mobile.entrypoint.dto.validador.request.VotoRequest;
@@ -19,20 +18,15 @@ import jakarta.validation.constraints.Min;
 @Validated
 public class VotosController {
 
+    private final ValidadorPostagemValidacaoService service;
 
-  private final ValidadorPostagemValidacaoService service;
+    public VotosController(ValidadorPostagemValidacaoService service) {
+        this.service = service;
+    }
 
-  public VotosController(ValidadorPostagemValidacaoService service) {
-    this.service = service;
-  }
-
-  @PostMapping("/{postagemId}/votos")
-  public ResponseEntity<ResultadoVoto> votar(
-      @PathVariable @Min(1) int postagemId,
-      org.springframework.security.core.Authentication authentication,
-      @Valid @RequestBody VotoRequest voto) {
-    var resultado = service.votar(
-        postagemId, br.com.ecociente.mobile.entrypoint.security.ValidadorUsuario.id(authentication, voto.usuarioId()), voto.tipo(), voto.motivoDenunciaId(), voto.comentario());
-    return ResponseEntity.ok(resultado);
-  }
+    @PostMapping("/{postagemId}/votos")
+    public ResponseEntity<ResultadoVoto> votar(@PathVariable @Min(1) int postagemId, org.springframework.security.core.Authentication authentication, @Valid @RequestBody VotoRequest voto) {
+        var resultado = service.votar(postagemId, br.com.ecociente.mobile.entrypoint.security.ValidadorUsuario.id(authentication, voto.usuarioId()), voto.tipo(), voto.motivoDenunciaId(), voto.comentario());
+        return ResponseEntity.ok(resultado);
+    }
 }

@@ -1,19 +1,15 @@
-
 package br.com.ecociente.mobile.entrypoint.controller.pontuacao;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import br.com.ecociente.mobile.core.exception.pontuacao.NotFoundException;
 import br.com.ecociente.mobile.core.gateway.pontuacao.PostagemGateway;
 import br.com.ecociente.mobile.core.service.pontuacao.PostagemValidacaoService;
 import br.com.ecociente.mobile.entrypoint.dto.pontuacao.request.DecisaoPostagemRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.access.AccessDeniedException;
-
 import br.com.ecociente.mobile.config.pontuacao.AutorizacaoPontuacao;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -23,43 +19,27 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PostagemValidacaoController {
 
-  private final PostagemValidacaoService service;
-  private final PostagemGateway postagemGateway;
-  private final AutorizacaoPontuacao autorizacaoPontuacao;
+    private final PostagemValidacaoService service;
 
-  @PostMapping("/{postagemId}/finalizar-validacao")
-  @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<Void> finalizar(
-      @PathVariable @Positive Integer postagemId) {
+    private final PostagemGateway postagemGateway;
 
-    service.encerrar(postagemId);
+    private final AutorizacaoPontuacao autorizacaoPontuacao;
 
-    return ResponseEntity.ok().build();
-  }
-
-  @PatchMapping("/{postagemId}/decisao")
-  @PreAuthorize("hasAnyRole('ADMIN', 'SINDICO')")
-  public ResponseEntity<Void> decidir(
-      @PathVariable @Positive Integer postagemId,
-      @Valid @RequestBody DecisaoPostagemRequest request,
-      Authentication authentication) {
-
-    Integer condominioId = postagemGateway
-        .buscarCondominioId(postagemId)
-        .orElseThrow(() -> new NotFoundException(
-            "POSTAGEM_NAO_ENCONTRADA",
-            "Postagem não encontrada"));
-
-    if (!autorizacaoPontuacao.podeDecidirPostagem(
-        authentication,
-        condominioId)) {
-      throw new AccessDeniedException(
-          "Você não pode decidir postagens deste condomínio");
+    @PostMapping("/{postagemId}/finalizar-validacao")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> finalizar(@PathVariable @Positive Integer postagemId) {
+        service.encerrar(postagemId);
+        return ResponseEntity.ok().build();
     }
 
-    service.decidir(postagemId, request.aprovar());
-
-    return ResponseEntity.ok().build();
-  }
-
+    @PatchMapping("/{postagemId}/decisao")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SINDICO')")
+    public ResponseEntity<Void> decidir(@PathVariable @Positive Integer postagemId, @Valid @RequestBody DecisaoPostagemRequest request, Authentication authentication) {
+        Integer condominioId = postagemGateway.buscarCondominioId(postagemId).orElseThrow(() -> new NotFoundException("POSTAGEM_NAO_ENCONTRADA", "Postagem não encontrada"));
+        if (!autorizacaoPontuacao.podeDecidirPostagem(authentication, condominioId)) {
+            throw new AccessDeniedException("Você não pode decidir postagens deste condomínio");
+        }
+        service.decidir(postagemId, request.aprovar());
+        return ResponseEntity.ok().build();
+    }
 }

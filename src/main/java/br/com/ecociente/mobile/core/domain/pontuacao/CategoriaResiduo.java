@@ -14,7 +14,10 @@ import lombok.Setter;
 public class CategoriaResiduo {
 
     private Integer id;
+
     private String nomeCategoria;
+
     private Integer pontosBase;
+
     private Integer limitePontosDiario;
 }

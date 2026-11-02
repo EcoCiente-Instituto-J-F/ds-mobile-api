@@ -1,7 +1,6 @@
 package br.com.ecociente.mobile.dataprovider.entity;
 
 import java.time.OffsetDateTime;
-
 import br.com.ecociente.mobile.core.domain.pontuacao.OrigemPontuacaoType;
 import br.com.ecociente.mobile.core.domain.pontuacao.TipoMovimentacaoType;
 import jakarta.persistence.Column;

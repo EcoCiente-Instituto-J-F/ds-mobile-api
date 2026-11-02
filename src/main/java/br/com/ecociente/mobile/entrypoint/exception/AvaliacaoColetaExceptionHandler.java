@@ -9,7 +9,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-
 import br.com.ecociente.mobile.core.exception.AvaliacaoColetaException;
 import br.com.ecociente.mobile.entrypoint.controller.AvaliacaoColetaController;
 
@@ -17,64 +16,37 @@ import br.com.ecociente.mobile.entrypoint.controller.AvaliacaoColetaController;
 @RestControllerAdvice(assignableTypes = AvaliacaoColetaController.class)
 public class AvaliacaoColetaExceptionHandler {
 
-  @ExceptionHandler(AvaliacaoColetaException.class)
-  public ResponseEntity<ErroResponse> tratar(
-      AvaliacaoColetaException exception) {
-    HttpStatus status = switch (exception.getTipo()) {
-      case DADOS_INVALIDOS -> HttpStatus.BAD_REQUEST;
-      case NAO_PERMITIDO -> HttpStatus.FORBIDDEN;
-      case NAO_ENCONTRADO -> HttpStatus.NOT_FOUND;
-      case CONFLITO -> HttpStatus.CONFLICT;
-    };
+    @ExceptionHandler(AvaliacaoColetaException.class)
+    public ResponseEntity<ErroResponse> tratar(AvaliacaoColetaException exception) {
+        HttpStatus status = switch(exception.getTipo()) {
+            case DADOS_INVALIDOS ->
+                HttpStatus.BAD_REQUEST;
+            case NAO_PERMITIDO ->
+                HttpStatus.FORBIDDEN;
+            case NAO_ENCONTRADO ->
+                HttpStatus.NOT_FOUND;
+            case CONFLITO ->
+                HttpStatus.CONFLICT;
+        };
+        return ResponseEntity.status(status).body(new ErroResponse(status.value(), exception.getCodigo(), exception.getMessage()));
+    }
 
-    return ResponseEntity.status(status).body(
-        new ErroResponse(
-            status.value(),
-            exception.getCodigo(),
-            exception.getMessage()));
-  }
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErroResponse> tratarParametro(MethodArgumentTypeMismatchException exception) {
+        return ResponseEntity.badRequest().body(new ErroResponse(400, "PARAMETRO_INVALIDO", "Valor inválido para o parâmetro: " + exception.getName()));
+    }
 
-  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-  public ResponseEntity<ErroResponse> tratarParametro(
-      MethodArgumentTypeMismatchException exception) {
-    return ResponseEntity.badRequest().body(
-        new ErroResponse(
-            400,
-            "PARAMETRO_INVALIDO",
-            "Valor inválido para o parâmetro: "
-                + exception.getName()));
-  }
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErroResponse> tratarValidacao(MethodArgumentNotValidException exception) {
+        String mensagem = exception.getBindingResult().getAllErrors().stream().findFirst().map(erro -> erro.getDefaultMessage()).orElse("Dados inválidos");
+        return ResponseEntity.badRequest().body(new ErroResponse(400, "ERRO_VALIDACAO", mensagem));
+    }
 
-  @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<ErroResponse> tratarValidacao(
-      MethodArgumentNotValidException exception) {
-    String mensagem = exception.getBindingResult()
-        .getAllErrors()
-        .stream()
-        .findFirst()
-        .map(erro -> erro.getDefaultMessage())
-        .orElse("Dados inválidos");
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErroResponse> tratarJson(HttpMessageNotReadableException exception) {
+        return ResponseEntity.badRequest().body(new ErroResponse(400, "JSON_INVALIDO", "Corpo da requisição inválido"));
+    }
 
-    return ResponseEntity.badRequest().body(
-        new ErroResponse(
-            400,
-            "ERRO_VALIDACAO",
-            mensagem));
-  }
-
-  @ExceptionHandler(HttpMessageNotReadableException.class)
-  public ResponseEntity<ErroResponse> tratarJson(
-      HttpMessageNotReadableException exception) {
-    return ResponseEntity.badRequest().body(
-        new ErroResponse(
-            400,
-            "JSON_INVALIDO",
-            "Corpo da requisição inválido"));
-  }
-
-  public record ErroResponse(
-      int status,
-      String codigo,
-      String mensagem) {
-  }
+    public record ErroResponse(int status, String codigo, String mensagem) {
+    }
 }

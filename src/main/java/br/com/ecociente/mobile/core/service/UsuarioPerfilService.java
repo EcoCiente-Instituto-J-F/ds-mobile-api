@@ -1,10 +1,8 @@
 package br.com.ecociente.mobile.core.service;
 
 import java.util.Optional;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import br.com.ecociente.mobile.core.domain.UsuarioPerfil;
 import br.com.ecociente.mobile.core.gateway.UsuarioPerfilGateway;
 
