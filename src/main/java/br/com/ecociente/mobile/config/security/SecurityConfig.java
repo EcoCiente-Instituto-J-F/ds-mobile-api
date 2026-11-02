@@ -76,6 +76,12 @@ public class SecurityConfig {
                                                 .permitAll()
 
                                                 .requestMatchers(
+                                                                HttpMethod.GET,
+                                                                "/livez",
+                                                                "/readyz")
+                                                .permitAll()
+
+                                                .requestMatchers(
                                                                 HttpMethod.POST,
                                                                 "/auth/login",
                                                                 "/api/cadastro/comum",
