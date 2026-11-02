@@ -38,7 +38,7 @@ class PushDispatchJobTest {
                 "usuario_id", 10, "tipo_notificacao", "quiz", "titulo_mensagem", "Quiz",
                 "corpo_mensagem", "Nova tentativa", "token_fcm", "token-teste",
                 "preferencias", "{}", "ativo", true)));
-        new PushDispatchJob(jdbc, firebase, new ObjectMapper(), push, true).executar();
+        new PushDispatchJob(jdbc, firebase, new ObjectMapper(), push, new PushAudience("all", ""), true).executar();
         verifyNoInteractions(firebase);
         verify(jdbc).update(org.mockito.ArgumentMatchers.contains("estado='DESCARTADO'"),
                 eq("Preferência desabilitada"), eq(5L));
@@ -54,10 +54,30 @@ class PushDispatchJobTest {
         when(jdbc.queryForList(anyString())).thenReturn(List.of(Map.of(
                 "id_entrega", 6L, "notificacao_id", 11, "instalacao_id", instalacao)));
         when(jdbc.queryForList(anyString(), eq(11), eq(instalacao))).thenReturn(List.of());
-        new PushDispatchJob(jdbc, firebase, new ObjectMapper(), push, true).executar();
+        new PushDispatchJob(jdbc, firebase, new ObjectMapper(), push, new PushAudience("all", ""), true).executar();
         verifyNoInteractions(firebase);
         verify(jdbc).update(org.mockito.ArgumentMatchers.contains("estado='DESCARTADO'"),
                 eq("Dispositivo removido"), eq(6L));
+    }
+
+    @Test
+    void pilotoNaoEnviaParaUsuarioNaoAutorizado() throws Exception {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        FirebaseMessaging firebase = mock(FirebaseMessaging.class);
+        br.com.ecociente.mobile.core.service.notificacoes.PushService push =
+                mock(br.com.ecociente.mobile.core.service.notificacoes.PushService.class);
+        String instalacao = "00000000-0000-4000-8000-000000000030";
+        when(jdbc.queryForList(anyString())).thenReturn(List.of(Map.of(
+                "id_entrega", 7L, "notificacao_id", 12, "instalacao_id", instalacao)));
+        when(jdbc.queryForList(anyString(), eq(12), eq(instalacao))).thenReturn(List.of(Map.of(
+                "usuario_id", 70, "tipo_notificacao", "dica", "titulo_mensagem", "Dica",
+                "corpo_mensagem", "Mensagem", "token_fcm", "token-teste",
+                "preferencias", "{\"notificacoesGerais\":true,\"dicasSustentaveis\":true}", "ativo", true)));
+        new PushDispatchJob(jdbc, firebase, new ObjectMapper(), push,
+                new PushAudience("pilot", "63"), true).executar();
+        verifyNoInteractions(firebase);
+        verify(jdbc).update(org.mockito.ArgumentMatchers.contains("estado='DESCARTADO'"),
+                eq("Fora da audiencia autorizada"), eq(7L));
     }
 
 }

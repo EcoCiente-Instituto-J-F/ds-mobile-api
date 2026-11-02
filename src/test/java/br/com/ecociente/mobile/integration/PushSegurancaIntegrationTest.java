@@ -26,6 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import br.com.ecociente.mobile.config.notificacoes.PushAudience;
 import br.com.ecociente.mobile.config.security.JwtService;
 import br.com.ecociente.mobile.config.security.SecurityConfig;
 import br.com.ecociente.mobile.dataprovider.gateway.notificacoes.JdbcPushService;
@@ -38,6 +39,7 @@ import io.jsonwebtoken.security.Keys;
 @SpringBootTest(classes = PushSegurancaIntegrationTest.Configuracao.class, properties = {
         "app.security.jwt.secret=chave-notificacoes-integracao-0123456789abcdef",
         "app.push.enabled=true",
+        "app.push.audience=all",
         "spring.sql.init.mode=never",
         "spring.flyway.enabled=false",
         "spring.liquibase.enabled=false"
@@ -205,6 +207,6 @@ class PushSegurancaIntegrationTest {
             HibernateJpaAutoConfiguration.class,
             JpaRepositoriesAutoConfiguration.class
     })
-    @Import({SecurityConfig.class, JwtService.class, PushController.class, JdbcPushService.class})
+    @Import({SecurityConfig.class, JwtService.class, PushController.class, JdbcPushService.class, PushAudience.class})
     static class Configuracao {}
 }

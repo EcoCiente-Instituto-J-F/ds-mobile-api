@@ -30,14 +30,16 @@ public class PushDispatchJob {
     private final FirebaseMessaging firebase;
     private final ObjectMapper mapper;
     private final PushService push;
+    private final PushAudience audience;
     private final boolean enabled;
 
     public PushDispatchJob(JdbcTemplate jdbc, FirebaseMessaging firebase, ObjectMapper mapper,
-            PushService push, @Value("${app.push.enabled:false}") boolean enabled) {
+            PushService push, PushAudience audience, @Value("${app.push.enabled:false}") boolean enabled) {
         this.jdbc = jdbc;
         this.firebase = firebase;
         this.mapper = mapper;
         this.push = push;
+        this.audience = audience;
         this.enabled = enabled;
     }
 
@@ -96,6 +98,10 @@ public class PushDispatchJob {
                 return;
             }
             Map<String, Object> registro = registros.getFirst();
+            if (!audience.permitir(((Number) registro.get("usuario_id")).intValue())) {
+                descartar(entregaId, "Fora da audiencia autorizada");
+                return;
+            }
             Map<String, Boolean> preferencias = mapper.readValue(
                     registro.get("preferencias").toString(),
                     new TypeReference<Map<String, Boolean>>() {});
