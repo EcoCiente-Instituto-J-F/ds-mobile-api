@@ -1,5 +1,5 @@
 package br.com.ecociente.mobile.core.domain.validador;
 
-@com.fasterxml.jackson.databind.annotation.JsonNaming(com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy.class)
+/** Saldo de confiança da postagem depois do voto e se a pontuação já está ativa. */
 public record ResultadoVoto(int saldoConfianca, boolean pontuacaoAtiva) {
 }

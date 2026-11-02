@@ -41,6 +41,7 @@ CREATE TABLE tb_perguntas_quiz (
     quiz_id INTEGER NOT NULL REFERENCES tb_quizzes(id_quiz),
     enunciado TEXT NOT NULL,
     ordem INTEGER NOT NULL,
+    explicacao TEXT,
     CONSTRAINT perguntas_quiz_index_12 UNIQUE (quiz_id, ordem)
 );
 

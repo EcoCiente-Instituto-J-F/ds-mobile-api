@@ -232,23 +232,26 @@ class TentativaQuizIntegrationTest {
     }
 
     @Test
-    void naoDeveUsarTorreDeOutroCondominio() throws Exception {
-        int alterados = jdbc.update("""
-            UPDATE tb_moradores
-            SET torre_id = 2
-            WHERE usuario_id = 20
-            """);
+    void naoDeveUsarTorreDeOutroCondominio() {
+        var erro = org.junit.jupiter.api.Assertions.assertThrows(
+            org.springframework.dao.DataIntegrityViolationException.class,
+            () -> jdbc.update("""
+                UPDATE tb_moradores
+                SET torre_id = 2
+                WHERE usuario_id = 20
+                """));
 
-        assertEquals(1, alterados);
+        org.junit.jupiter.api.Assertions.assertTrue(
+            erro.getMostSpecificCause().getMessage()
+                .contains("fk_moradores_torre_condominio"));
 
-        int id = iniciar(20);
+        assertEquals(
+            1,
+            jdbc.queryForObject(
+                "SELECT torre_id FROM tb_moradores WHERE usuario_id = 20",
+                Integer.class).intValue());
 
-        finalizar(id, 20, CORRETAS)
-            .andExpect(status().isConflict());
-
-        assertEquals(0L, contarRespostas(id));
         assertEquals(0, chamadas.get());
-        assertNaoConcluida(id);
     }
 
     @Test

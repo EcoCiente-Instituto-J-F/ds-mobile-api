@@ -152,8 +152,8 @@ class ChatIntegrationTest {
     @Test
     void deveMarcarSomenteRecebidasAteOLimiteSemAlterarLeituraAnterior() throws Exception {
         int conversaId = criar(30, 1, 1);
-        long propria = enviar(30, conversaId, "Mensagem do síndico");
         long recebida = enviar(10, conversaId, "Primeira resposta");
+        long propria = enviar(30, conversaId, "Mensagem do síndico");
         long posterior = enviar(10, conversaId, "Segunda resposta");
         mvc.perform(get("/api/conversas").header("Authorization", bearer(30))).andExpect(status().isOk()).andExpect(jsonPath("$.itens[0].naoLidas").value(2));
         mvc.perform(patch("/api/conversas/{id}/leitura", conversaId).header("Authorization", bearer(30)).contentType("application/json").content(json.writeValueAsString(Map.of("ateMensagemId", recebida)))).andExpect(status().isOk()).andExpect(jsonPath("$.mensagensMarcadas").value(1));

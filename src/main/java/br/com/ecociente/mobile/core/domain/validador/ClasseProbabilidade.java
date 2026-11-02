@@ -1,5 +1,5 @@
 package br.com.ecociente.mobile.core.domain.validador;
 
-@com.fasterxml.jackson.databind.annotation.JsonNaming(com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy.class)
+/** Classe do modelo com a probabilidade de 0 a 1. */
 public record ClasseProbabilidade(String classe, double probabilidade) {
 }

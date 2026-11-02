@@ -164,9 +164,24 @@ class PostagemIntegrationTest {
     }
 
     @Test
-    void deveRejeitarMoradorComTorreDeOutroCondominio() throws Exception {
-        jdbc.update("UPDATE tb_moradores SET torre_id = 2 WHERE usuario_id = 20");
-        mvc.perform(post("/api/postagens").header("Authorization", bearer(20)).contentType(MediaType.APPLICATION_JSON).content(corpo("https://img.teste/t.jpg", "hash-t", 1, 1, haCincoMinutos()))).andExpect(status().isConflict()).andExpect(jsonPath("$.codigo").value("TORRE_CONDOMINIO_INCONSISTENTE"));
+    void deveRejeitarMoradorComTorreDeOutroCondominio() {
+        var erro = org.junit.jupiter.api.Assertions.assertThrows(
+            org.springframework.dao.DataIntegrityViolationException.class,
+            () -> jdbc.update("""
+                UPDATE tb_moradores
+                SET torre_id = 2
+                WHERE usuario_id = 20
+                """));
+
+        org.junit.jupiter.api.Assertions.assertTrue(
+            erro.getMostSpecificCause().getMessage()
+                .contains("fk_moradores_torre_condominio"));
+
+        org.junit.jupiter.api.Assertions.assertEquals(
+            1,
+            jdbc.queryForObject(
+                "SELECT torre_id FROM tb_moradores WHERE usuario_id = 20",
+                Integer.class).intValue());
     }
 
     @Test

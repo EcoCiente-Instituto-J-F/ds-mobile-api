@@ -9,7 +9,7 @@ import br.com.ecociente.mobile.core.domain.validador.ResultadoVoto;
 import br.com.ecociente.mobile.core.domain.validador.VinculoTrust;
 
 @Component
-public class PostagemValidacaoJdbcGateway {
+public class PostagemValidacaoJdbcGateway implements br.com.ecociente.mobile.core.gateway.validador.PostagemValidacaoGateway {
 
     private final JdbcTemplate jdbc;
 

@@ -1,5 +1,5 @@
 package br.com.ecociente.mobile.core.domain.validador;
 
-@com.fasterxml.jackson.databind.annotation.JsonNaming(com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy.class)
+/** Usuário envolvido numa postagem que tem vínculo com o condomínio (quem tem trust score a atualizar). */
 public record VinculoTrust(int condominioId, int usuarioId) {
 }

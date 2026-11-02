@@ -1,5 +1,5 @@
 package br.com.ecociente.mobile.core.domain.validador;
 
-@com.fasterxml.jackson.databind.annotation.JsonNaming(com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy.class)
+/** Uma das outras classes que o modelo considerou para a foto, com confiança de 0 a 100. */
 public record Alternativa(String categoria, double confianca) {
 }
