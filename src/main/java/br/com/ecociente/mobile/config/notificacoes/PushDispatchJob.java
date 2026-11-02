@@ -7,6 +7,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -22,6 +23,7 @@ import com.google.firebase.messaging.MessagingErrorCode;
 import br.com.ecociente.mobile.core.service.notificacoes.PushService;
 
 @Component
+@ConditionalOnProperty(name = "app.push.enabled", havingValue = "true")
 public class PushDispatchJob {
     private static final Logger log = LoggerFactory.getLogger(PushDispatchJob.class);
     private final JdbcTemplate jdbc;
