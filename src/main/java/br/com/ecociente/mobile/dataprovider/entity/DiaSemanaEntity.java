@@ -21,12 +21,11 @@ import lombok.Setter;
 @Builder
 public class DiaSemanaEntity {
 
-  @Id
-  @GeneratedValue(strategy= GenerationType.IDENTITY)
-  @Column(name = "id_dia_semana", nullable = false)
-  private Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_dia_semana", nullable = false)
+    private Integer id;
 
-  @Column(name = "nome_dia", nullable = false)
-  private String nomeDiaSemana;
-  
+    @Column(name = "nome_dia", nullable = false)
+    private String nomeDiaSemana;
 }

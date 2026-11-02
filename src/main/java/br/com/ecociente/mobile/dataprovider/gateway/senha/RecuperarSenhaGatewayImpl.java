@@ -7,43 +7,32 @@ import br.com.ecociente.mobile.dataprovider.mapper.senha.RecuperarSenhaMapper;
 import br.com.ecociente.mobile.dataprovider.repository.EsqueceuSenhaRepositoy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
 import java.sql.Timestamp;
 import java.util.Optional;
 import java.time.ZoneOffset;
 
 @Component
 @RequiredArgsConstructor
-public class RecuperarSenhaGatewayImpl
-                implements RecuperacaoSenhaGateway {
+public class RecuperarSenhaGatewayImpl implements RecuperacaoSenhaGateway {
 
-        private final EsqueceuSenhaRepositoy esqueciSenhaRepository;
-        private final RecuperarSenhaMapper recuperarSenhaMapper;
+    private final EsqueceuSenhaRepositoy esqueciSenhaRepository;
 
-        @Override
-        public RecuperacaoSenha salvar(RecuperacaoSenha recuperacaoSenha) {
-                EsqueceuSenhaEntity entity = recuperarSenhaMapper.toEntity(recuperacaoSenha);
+    private final RecuperarSenhaMapper recuperarSenhaMapper;
 
-                EsqueceuSenhaEntity entitySalva = esqueciSenhaRepository.save(entity);
+    @Override
+    public RecuperacaoSenha salvar(RecuperacaoSenha recuperacaoSenha) {
+        EsqueceuSenhaEntity entity = recuperarSenhaMapper.toEntity(recuperacaoSenha);
+        EsqueceuSenhaEntity entitySalva = esqueciSenhaRepository.save(entity);
+        return recuperarSenhaMapper.toDomain(entitySalva);
+    }
 
-                return recuperarSenhaMapper.toDomain(entitySalva);
-        }
+    @Override
+    public Optional<RecuperacaoSenha> buscarUltimaPorUsuarioId(Integer usuarioId) {
+        return esqueciSenhaRepository.findFirstByUsuarioIdOrderByIdDesc(usuarioId).map(recuperarSenhaMapper::toDomain);
+    }
 
-        @Override
-        public Optional<RecuperacaoSenha> buscarUltimaPorUsuarioId(
-                        Integer usuarioId) {
-                return esqueciSenhaRepository
-                                .findFirstByUsuarioIdOrderByIdDesc(usuarioId)
-                                .map(recuperarSenhaMapper::toDomain);
-        }
-
-        @Override
-        public void invalidarPendentes(
-                        Integer usuarioId,
-                        Timestamp agora) {
-
-                esqueciSenhaRepository.invalidarPendentes(
-                                usuarioId,
-                                agora.toInstant().atOffset(ZoneOffset.UTC));
-        }
+    @Override
+    public void invalidarPendentes(Integer usuarioId, Timestamp agora) {
+        esqueciSenhaRepository.invalidarPendentes(usuarioId, agora.toInstant().atOffset(ZoneOffset.UTC));
+    }
 }

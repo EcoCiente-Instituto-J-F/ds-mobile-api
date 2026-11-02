@@ -2,23 +2,22 @@ package br.com.ecociente.mobile.dataprovider.validador.visao;
 
 import java.awt.image.BufferedImage;
 import java.util.List;
-
 import br.com.ecociente.mobile.core.domain.validador.ClasseProbabilidade;
 import br.com.ecociente.mobile.core.gateway.validador.ClassificadorGateway;
 
-/** Mesmo contrato do zero-shot, mas com a cabeça treinada no lugar dos prompts. */
 public final class ClassificadorCabecaGateway implements ClassificadorGateway {
 
-  private final ModeloClip modelo;
-  private final CabecaTreinada cabeca;
+    private final ModeloClip modelo;
 
-  public ClassificadorCabecaGateway(ModeloClip modelo, CabecaTreinada cabeca) {
-    this.modelo = modelo;
-    this.cabeca = cabeca;
-  }
+    private final CabecaTreinada cabeca;
 
-  @Override
-  public synchronized List<ClasseProbabilidade> ranking(BufferedImage imagem) {
-    return cabeca.ranking(modelo.embeddingImagem(imagem));
-  }
+    public ClassificadorCabecaGateway(ModeloClip modelo, CabecaTreinada cabeca) {
+        this.modelo = modelo;
+        this.cabeca = cabeca;
+    }
+
+    @Override
+    public synchronized List<ClasseProbabilidade> ranking(BufferedImage imagem) {
+        return cabeca.ranking(modelo.embeddingImagem(imagem));
+    }
 }

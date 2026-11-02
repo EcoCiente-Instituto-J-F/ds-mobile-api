@@ -12,7 +12,10 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class RecorrenciaAgendamento {
-  private Integer id;
-  private AgendamentoColeta agendamentoColeta;
-  private DiaSemanaType diaSemana;
+
+    private Integer id;
+
+    private AgendamentoColeta agendamentoColeta;
+
+    private DiaSemanaType diaSemana;
 }

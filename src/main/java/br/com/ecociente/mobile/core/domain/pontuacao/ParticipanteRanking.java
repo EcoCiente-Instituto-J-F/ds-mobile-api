@@ -14,7 +14,10 @@ import lombok.Setter;
 public class ParticipanteRanking {
 
     private Long posicao;
+
     private Integer participanteId;
+
     private String nome;
+
     private Long pontos;
 }

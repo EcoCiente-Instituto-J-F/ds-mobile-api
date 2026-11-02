@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import br.com.ecociente.mobile.core.service.pontuacao.ReconstrucaoRankingService;
 import br.com.ecociente.mobile.core.service.pontuacao.ReconstrucaoRankingService.ResultadoReconstrucao;
 import br.com.ecociente.mobile.entrypoint.dto.pontuacao.request.ReconstruirRankingRequest;
@@ -18,22 +17,13 @@ public class ReconstrucaoRankingController {
 
     private final ReconstrucaoRankingService service;
 
-    public ReconstrucaoRankingController(
-        ReconstrucaoRankingService service
-    ) {
+    public ReconstrucaoRankingController(ReconstrucaoRankingService service) {
         this.service = service;
     }
 
     @PostMapping("/reconstruir")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ResultadoReconstrucao> reconstruir(
-        @Valid @RequestBody ReconstruirRankingRequest request
-    ) {
-        return ResponseEntity.ok(
-            service.reconstruir(
-                request.tipo(),
-                request.condominioId()
-            )
-        );
+    public ResponseEntity<ResultadoReconstrucao> reconstruir(@Valid @RequestBody ReconstruirRankingRequest request) {
+        return ResponseEntity.ok(service.reconstruir(request.tipo(), request.condominioId()));
     }
 }

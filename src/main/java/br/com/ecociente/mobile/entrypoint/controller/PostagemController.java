@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import br.com.ecociente.mobile.core.service.ConsultarPostagensCondominioService;
 import br.com.ecociente.mobile.core.service.ConsultarPostagensUsuarioService;
 import br.com.ecociente.mobile.core.service.CriarPostagemComTriagemService;
@@ -28,17 +27,16 @@ import jakarta.validation.Valid;
 public class PostagemController {
 
     private final CriarPostagemComTriagemService criarService;
+
     private final ConsultarPostagensCondominioService condominioService;
+
     private final ConsultarPostagensUsuarioService usuarioService;
+
     private final VotarPostagemService votarService;
+
     private final PostagemMapper mapper;
 
-    public PostagemController(
-            CriarPostagemComTriagemService criarService,
-            ConsultarPostagensCondominioService condominioService,
-            ConsultarPostagensUsuarioService usuarioService,
-            VotarPostagemService votarService,
-            PostagemMapper mapper) {
+    public PostagemController(CriarPostagemComTriagemService criarService, ConsultarPostagensCondominioService condominioService, ConsultarPostagensUsuarioService usuarioService, VotarPostagemService votarService, PostagemMapper mapper) {
         this.criarService = criarService;
         this.condominioService = condominioService;
         this.usuarioService = usuarioService;
@@ -47,66 +45,26 @@ public class PostagemController {
     }
 
     @PostMapping
-    public ResponseEntity<PostagemResponseDto> criar(
-            @AuthenticationPrincipal Integer usuarioId,
-            @Valid @RequestBody CriarPostagemRequestDto request) {
-
-        var postagem = criarService.executar(
-                usuarioId,
-                request.condominioId(),
-                request.categoriaId(),
-                request.urlFoto(),
-                request.hashFoto(),
-                request.capturadaEm());
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(mapper.toResponse(postagem));
+    public ResponseEntity<PostagemResponseDto> criar(@AuthenticationPrincipal Integer usuarioId, @Valid @RequestBody CriarPostagemRequestDto request) {
+        var postagem = criarService.executar(usuarioId, request.condominioId(), request.categoriaId(), request.urlFoto(), request.hashFoto(), request.capturadaEm());
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(postagem));
     }
 
     @PostMapping("/{postagemId}/votos")
-    public ResponseEntity<ResultadoVotoResponseDto> votar(
-            @AuthenticationPrincipal Integer usuarioId,
-            @PathVariable("postagemId") Integer postagemId,
-            @Valid @RequestBody VotarPostagemRequestDto request) {
-
-        var resultado = votarService.executar(
-                usuarioId,
-                postagemId,
-                request.tipo(),
-                request.motivoDenunciaId(),
-                request.comentario());
-
+    public ResponseEntity<ResultadoVotoResponseDto> votar(@AuthenticationPrincipal Integer usuarioId, @PathVariable("postagemId") Integer postagemId, @Valid @RequestBody VotarPostagemRequestDto request) {
+        var resultado = votarService.executar(usuarioId, postagemId, request.tipo(), request.motivoDenunciaId(), request.comentario());
         return ResponseEntity.ok(mapper.toResponse(resultado));
     }
 
     @GetMapping
-    public ResponseEntity<PostagensResponseDto> listarDoCondominio(
-            @AuthenticationPrincipal Integer usuarioId,
-            @RequestParam("condominioId") Integer condominioId,
-            @RequestParam(name = "page", defaultValue = "0") int pagina,
-            @RequestParam(name = "size", defaultValue = "10") int tamanho) {
-
-        var resultado = condominioService.executar(
-                usuarioId,
-                condominioId,
-                pagina,
-                tamanho);
-
+    public ResponseEntity<PostagensResponseDto> listarDoCondominio(@AuthenticationPrincipal Integer usuarioId, @RequestParam("condominioId") Integer condominioId, @RequestParam(name = "page", defaultValue = "0") int pagina, @RequestParam(name = "size", defaultValue = "10") int tamanho) {
+        var resultado = condominioService.executar(usuarioId, condominioId, pagina, tamanho);
         return ResponseEntity.ok(mapper.toResponse(resultado));
     }
 
     @GetMapping("/minhas")
-    public ResponseEntity<PostagensResponseDto> listarMinhas(
-            @AuthenticationPrincipal Integer usuarioId,
-            @RequestParam(name = "page", defaultValue = "0") int pagina,
-            @RequestParam(name = "size", defaultValue = "10") int tamanho) {
-
-        var resultado = usuarioService.executar(
-                usuarioId,
-                pagina,
-                tamanho);
-
+    public ResponseEntity<PostagensResponseDto> listarMinhas(@AuthenticationPrincipal Integer usuarioId, @RequestParam(name = "page", defaultValue = "0") int pagina, @RequestParam(name = "size", defaultValue = "10") int tamanho) {
+        var resultado = usuarioService.executar(usuarioId, pagina, tamanho);
         return ResponseEntity.ok(mapper.toResponse(resultado));
     }
 }

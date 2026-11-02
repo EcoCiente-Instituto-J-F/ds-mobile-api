@@ -5,11 +5,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Getter 
-@NoArgsConstructor 
-@AllArgsConstructor 
-@Builder 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class UsuarioCredenciais {
-  String email;
-   String senha;
+
+    String email;
+
+    String senha;
 }

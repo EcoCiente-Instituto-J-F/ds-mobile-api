@@ -2,23 +2,21 @@ package br.com.ecociente.mobile.core.exception;
 
 public class ChatException extends RuntimeException {
 
-  private final int status;
-  private final String codigo;
+    private final int status;
 
-  public ChatException(
-      int status,
-      String codigo,
-      String mensagem) {
-    super(mensagem);
-    this.status = status;
-    this.codigo = codigo;
-  }
+    private final String codigo;
 
-  public int getStatus() {
-    return status;
-  }
+    public ChatException(int status, String codigo, String mensagem) {
+        super(mensagem);
+        this.status = status;
+        this.codigo = codigo;
+    }
 
-  public String getCodigo() {
-    return codigo;
-  }
+    public int getStatus() {
+        return status;
+    }
+
+    public String getCodigo() {
+        return codigo;
+    }
 }

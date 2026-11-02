@@ -1,10 +1,8 @@
 package br.com.ecociente.mobile.dataprovider.entity;
 
 import java.time.OffsetDateTime;
-
 import org.hibernate.annotations.TimeZoneStorage;
 import org.hibernate.annotations.TimeZoneStorageType;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

@@ -14,7 +14,10 @@ import lombok.Setter;
 public class Quiz {
 
     private Integer id;
+
     private String tituloQuiz;
+
     private Integer pontosRecompensa;
+
     private Boolean ativo;
 }

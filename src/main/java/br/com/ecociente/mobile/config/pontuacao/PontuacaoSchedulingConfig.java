@@ -13,10 +13,8 @@ public class PontuacaoSchedulingConfig {
     @Bean
     public ThreadPoolTaskScheduler taskScheduler() {
         var scheduler = new ThreadPoolTaskScheduler();
-
         scheduler.setPoolSize(2);
         scheduler.setThreadNamePrefix("pontuacao-job-");
-
         return scheduler;
     }
 }
