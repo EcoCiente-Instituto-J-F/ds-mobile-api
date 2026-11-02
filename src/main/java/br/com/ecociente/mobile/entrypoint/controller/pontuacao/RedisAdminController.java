@@ -1,14 +1,11 @@
-
 package br.com.ecociente.mobile.entrypoint.controller.pontuacao;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import br.com.ecociente.mobile.core.service.pontuacao.RedisAdminService;
 import br.com.ecociente.mobile.core.service.pontuacao.RedisAdminService.DiagnosticoRedis;
 import br.com.ecociente.mobile.core.service.pontuacao.RedisAdminService.ResultadoSincronizacao;
-
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -16,21 +13,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RedisAdminController {
 
-  private final RedisAdminService service;
+    private final RedisAdminService service;
 
-  @PostMapping("/sincronizar-pendentes")
-  @PreAuthorize("hasAnyRole('ADMIN', 'SERVICE')")
-  public ResponseEntity<ResultadoSincronizacao> sincronizarPendentes() {
+    @PostMapping("/sincronizar-pendentes")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SERVICE')")
+    public ResponseEntity<ResultadoSincronizacao> sincronizarPendentes() {
+        return ResponseEntity.ok(service.sincronizarPendentes());
+    }
 
-    return ResponseEntity.ok(
-        service.sincronizarPendentes());
-  }
-
-  @GetMapping("/status")
-  @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<DiagnosticoRedis> consultarStatus() {
-
-    return ResponseEntity.ok(
-        service.consultarStatus());
-  }
+    @GetMapping("/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<DiagnosticoRedis> consultarStatus() {
+        return ResponseEntity.ok(service.consultarStatus());
+    }
 }

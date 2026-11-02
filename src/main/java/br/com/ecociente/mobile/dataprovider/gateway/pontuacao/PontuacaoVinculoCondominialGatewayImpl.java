@@ -1,25 +1,18 @@
-
 package br.com.ecociente.mobile.dataprovider.gateway.pontuacao;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
 import br.com.ecociente.mobile.core.gateway.pontuacao.VinculoCondominialGateway;
-
 import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class PontuacaoVinculoCondominialGatewayImpl
-        implements VinculoCondominialGateway {
+public class PontuacaoVinculoCondominialGatewayImpl implements VinculoCondominialGateway {
 
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    public boolean possuiVinculoAtivo(
-            Integer usuarioId,
-            Integer condominioId) {
-
+    public boolean possuiVinculoAtivo(Integer usuarioId, Integer condominioId) {
         String sql = """
             SELECT EXISTS (
                 SELECT 1
@@ -30,22 +23,11 @@ public class PontuacaoVinculoCondominialGatewayImpl
                   AND data_saida IS NULL
             )
             """;
-
-        return Boolean.TRUE.equals(
-            jdbcTemplate.queryForObject(
-                sql,
-                Boolean.class,
-                usuarioId,
-                condominioId
-            )
-        );
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, usuarioId, condominioId));
     }
 
     @Override
-    public boolean torrePertenceCondominio(
-            Integer torreId,
-            Integer condominioId) {
-
+    public boolean torrePertenceCondominio(Integer torreId, Integer condominioId) {
         String sql = """
             SELECT EXISTS (
                 SELECT 1
@@ -54,22 +36,11 @@ public class PontuacaoVinculoCondominialGatewayImpl
                   AND condominio_id = ?
             )
             """;
-
-        return Boolean.TRUE.equals(
-            jdbcTemplate.queryForObject(
-                sql,
-                Boolean.class,
-                torreId,
-                condominioId
-            )
-        );
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, torreId, condominioId));
     }
 
     @Override
-    public boolean ehSindico(
-            Integer usuarioId,
-            Integer condominioId) {
-
+    public boolean ehSindico(Integer usuarioId, Integer condominioId) {
         String sql = """
             SELECT EXISTS (
                 SELECT 1
@@ -81,20 +52,11 @@ public class PontuacaoVinculoCondominialGatewayImpl
                   AND c.ativo = TRUE
             )
             """;
-
-        return Boolean.TRUE.equals(
-            jdbcTemplate.queryForObject(
-                sql,
-                Boolean.class,
-                condominioId,
-                usuarioId
-            )
-        );
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, condominioId, usuarioId));
     }
 
     @Override
     public boolean condominioExiste(Integer condominioId) {
-
         String sql = """
             SELECT EXISTS (
                 SELECT 1
@@ -103,13 +65,6 @@ public class PontuacaoVinculoCondominialGatewayImpl
                   AND ativo = TRUE
             )
             """;
-
-        return Boolean.TRUE.equals(
-            jdbcTemplate.queryForObject(
-                sql,
-                Boolean.class,
-                condominioId
-            )
-        );
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, condominioId));
     }
 }

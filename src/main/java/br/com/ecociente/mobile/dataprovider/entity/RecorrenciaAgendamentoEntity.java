@@ -24,17 +24,16 @@ import lombok.Setter;
 @Builder
 public class RecorrenciaAgendamentoEntity {
 
-  @Id
-  @GeneratedValue(strategy= GenerationType.IDENTITY)
-  @Column(name = "id_recorrencia_agendamento", nullable = false)
-  private Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_recorrencia_agendamento", nullable = false)
+    private Integer id;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "agendamento_coleta_id", nullable = false)
-  private AgendamentoColetaEntity agendamentoColeta;
-  
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "dia_semana_id", nullable = false)
-  private DiaSemanaEntity diaSemana;
-  
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "agendamento_coleta_id", nullable = false)
+    private AgendamentoColetaEntity agendamentoColeta;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dia_semana_id", nullable = false)
+    private DiaSemanaEntity diaSemana;
 }

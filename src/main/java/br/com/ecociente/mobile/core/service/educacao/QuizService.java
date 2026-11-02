@@ -1,10 +1,8 @@
 package br.com.ecociente.mobile.core.service.educacao;
 
 import java.util.Optional;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import br.com.ecociente.mobile.core.domain.educacao.Quiz;
 import br.com.ecociente.mobile.core.gateway.educacao.QuizGateway;
 

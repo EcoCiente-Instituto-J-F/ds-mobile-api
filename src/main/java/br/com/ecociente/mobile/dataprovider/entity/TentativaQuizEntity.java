@@ -2,7 +2,6 @@ package br.com.ecociente.mobile.dataprovider.entity;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

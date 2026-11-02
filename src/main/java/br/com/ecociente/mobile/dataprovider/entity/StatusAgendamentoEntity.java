@@ -21,12 +21,11 @@ import lombok.Setter;
 @Builder
 public class StatusAgendamentoEntity {
 
-  @Id
-  @GeneratedValue(strategy= GenerationType.IDENTITY)
-  @Column(name = "id_status", nullable = false)
-  private Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_status", nullable = false)
+    private Integer id;
 
-  @Column(name = "nome_status", nullable = false)
-  private String nomeStatus;
-
+    @Column(name = "nome_status", nullable = false)
+    private String nomeStatus;
 }

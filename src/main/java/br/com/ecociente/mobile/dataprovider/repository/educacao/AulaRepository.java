@@ -2,15 +2,12 @@ package br.com.ecociente.mobile.dataprovider.repository.educacao;
 
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
 import br.com.ecociente.mobile.dataprovider.entity.educacao.AulaEntity;
 
-public interface AulaRepository
-    extends JpaRepository<AulaEntity, Integer> {
+public interface AulaRepository extends JpaRepository<AulaEntity, Integer> {
 
     List<AulaEntity> findByCursoIdOrderByOrdemAscIdAsc(Integer cursoId);
 
@@ -25,7 +22,5 @@ public interface AulaRepository
                 AND c.estaAtivo = true
           )
         """)
-    Optional<AulaEntity> buscarAulaDeCursoAtivoPorId(
-        @Param("aulaId") Integer aulaId
-    );
+    Optional<AulaEntity> buscarAulaDeCursoAtivoPorId(@Param("aulaId") Integer aulaId);
 }

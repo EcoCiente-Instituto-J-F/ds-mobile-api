@@ -4,11 +4,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
 import br.com.ecociente.mobile.core.domain.Postagem;
 import br.com.ecociente.mobile.core.gateway.PostagemAnaliseGateway;
 import br.com.ecociente.mobile.dataprovider.entity.PostagemEntity;
@@ -17,69 +15,41 @@ import br.com.ecociente.mobile.dataprovider.repository.PostagemAnaliseRepository
 
 @Component
 @Transactional(propagation = Propagation.MANDATORY)
-public class PostagemAnaliseGatewayImpl
-    implements PostagemAnaliseGateway {
+public class PostagemAnaliseGatewayImpl implements PostagemAnaliseGateway {
 
-  private final PostagemAnaliseRepository repository;
-  private final PostagemAnalisePersistenceMapper mapper;
+    private final PostagemAnaliseRepository repository;
 
-  public PostagemAnaliseGatewayImpl(
-      PostagemAnaliseRepository repository,
-      PostagemAnalisePersistenceMapper mapper) {
-    this.repository = repository;
-    this.mapper = mapper;
-  }
+    private final PostagemAnalisePersistenceMapper mapper;
 
-  @Override
-  public Optional<Integer> buscarResponsavelAtivo(
-      Integer condominioId) {
-    return repository.buscarResponsavelAtivo(
-        condominioId);
-  }
-
-  @Override
-  public long contarEmAnalise(
-      Integer condominioId) {
-    return repository.contarEmAnalise(
-        condominioId);
-  }
-
-  @Override
-  public List<Postagem> listarEmAnalise(
-      Integer condominioId,
-      long deslocamento,
-      int limite) {
-
-    var entities = repository.listarEmAnalise(
-        condominioId,
-        deslocamento,
-        limite);
-
-    if (entities.isEmpty()) {
-      return List.of();
+    public PostagemAnaliseGatewayImpl(PostagemAnaliseRepository repository, PostagemAnalisePersistenceMapper mapper) {
+        this.repository = repository;
+        this.mapper = mapper;
     }
 
-    var ids = entities.stream()
-        .map(PostagemEntity::getId)
-        .toList();
+    @Override
+    public Optional<Integer> buscarResponsavelAtivo(Integer condominioId) {
+        return repository.buscarResponsavelAtivo(condominioId);
+    }
 
-    var complementos = repository.buscarDadosComplementares(ids)
-        .stream()
-        .collect(Collectors.toMap(
-            dados -> ((Number) dados[0]).intValue(),
-            Function.identity()));
+    @Override
+    public long contarEmAnalise(Integer condominioId) {
+        return repository.contarEmAnalise(condominioId);
+    }
 
-    return entities.stream()
-        .map(entity -> {
-          var dados = complementos.get(entity.getId());
-
-          if (dados == null) {
-            throw new IllegalStateException(
-                "Dados complementares da postagem não encontrados");
-          }
-
-          return mapper.toDomain(entity, dados);
-        })
-        .toList();
-  }
+    @Override
+    public List<Postagem> listarEmAnalise(Integer condominioId, long deslocamento, int limite) {
+        var entities = repository.listarEmAnalise(condominioId, deslocamento, limite);
+        if (entities.isEmpty()) {
+            return List.of();
+        }
+        var ids = entities.stream().map(PostagemEntity::getId).toList();
+        var complementos = repository.buscarDadosComplementares(ids).stream().collect(Collectors.toMap(dados -> ((Number) dados[0]).intValue(), Function.identity()));
+        return entities.stream().map(entity -> {
+            var dados = complementos.get(entity.getId());
+            if (dados == null) {
+                throw new IllegalStateException("Dados complementares da postagem não encontrados");
+            }
+            return mapper.toDomain(entity, dados);
+        }).toList();
+    }
 }

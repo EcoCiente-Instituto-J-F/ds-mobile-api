@@ -12,14 +12,14 @@ import lombok.*;
 @Builder
 public class TipoUsuarioEntity {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id_tipo_usuario")
-  private Integer idTipoUsuario;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_tipo_usuario")
+    private Integer idTipoUsuario;
 
-  @Column(name = "nome_tipo", nullable = false, length = 50)
-  private String nomeTipo;
+    @Column(name = "nome_tipo", nullable = false, length = 50)
+    private String nomeTipo;
 
-  @Column(name = "descricao", length = 255)
-  private String descricao;
+    @Column(name = "descricao", length = 255)
+    private String descricao;
 }
