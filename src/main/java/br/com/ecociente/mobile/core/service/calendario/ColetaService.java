@@ -1,7 +1,9 @@
 package br.com.ecociente.mobile.core.service.calendario;
 
 import java.time.OffsetDateTime;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import br.com.ecociente.mobile.core.service.notificacoes.PushService;
 import org.springframework.transaction.annotation.Transactional;
 import br.com.ecociente.mobile.core.domain.calendario.Coleta;
 import br.com.ecociente.mobile.core.domain.calendario.NovaColeta;
@@ -17,6 +19,9 @@ import br.com.ecociente.mobile.core.gateway.calendario.ColetaGateway;
 public class ColetaService {
 
     private final ColetaGateway gateway;
+
+    @Autowired(required = false)
+    private PushService push;
 
     public ColetaService(ColetaGateway gateway) {
         this.gateway = gateway;
@@ -40,7 +45,12 @@ public class ColetaService {
         if (sindico && cooperativa) {
             throw proibido("O mesmo usuário não pode representar as duas partes");
         }
-        return gateway.criar(usuarioId, sindico ? "CONDOMINIO" : "COOPERATIVA", entrada);
+        Coleta coleta = gateway.criar(usuarioId, sindico ? "CONDOMINIO" : "COOPERATIVA", entrada);
+        if (push != null && coleta != null && coleta.id() != null) {
+            push.criar(usuarioId, "calendario", "coleta_criada:" + coleta.id(),
+                    "Solicitação registrada", "Sua solicitação de coleta foi registrada.", "calendario", null);
+        }
+        return coleta;
     }
 
     @Transactional
@@ -67,7 +77,16 @@ public class ColetaService {
         }
         validarTransicao(coleta.status(), novoStatus);
         Integer respondidoPor = novoStatus == StatusType.REALIZADO ? coleta.respondidoPorUsuarioId() : usuarioId;
-        return gateway.atualizarStatus(coletaId, novoStatus, respondidoPor);
+        Coleta atualizada = gateway.atualizarStatus(coletaId, novoStatus, respondidoPor);
+        if (push != null && coleta.solicitadoPorUsuarioId() != null) {
+            boolean pedidoSindico = "CONDOMINIO".equals(coleta.origemSolicitacao());
+            String tipo = pedidoSindico && novoStatus == StatusType.CONFIRMADO ? "solicitacao_aceita"
+                    : pedidoSindico && novoStatus == StatusType.RECUSADO ? "solicitacao_recusada" : "calendario";
+            push.criar(coleta.solicitadoPorUsuarioId(), tipo, "coleta_status:" + coletaId + ":" + novoStatus,
+                    novoStatus == StatusType.CONFIRMADO ? "Coleta confirmada" : "Atualização da coleta",
+                    "A situação da sua coleta foi atualizada.", "calendario", "Ver detalhes");
+        }
+        return atualizada;
     }
 
     private void validarDestinatario(Integer usuarioId, Coleta coleta, boolean sindico, boolean cooperativa) {

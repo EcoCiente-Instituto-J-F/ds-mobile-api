@@ -3,7 +3,9 @@ package br.com.ecociente.mobile.core.service.pontuacao;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import br.com.ecociente.mobile.core.service.notificacoes.PushService;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,9 @@ public class SincronizacaoPontuacaoService {
     private final Clock clock;
 
     private final int retentionDays;
+
+    @Autowired(required = false)
+    private PushService push;
 
     public SincronizacaoPontuacaoService(SincronizacaoPontuacaoGateway sincronizacaoGateway, RankingRedisGateway rankingGateway, CycleService cycleService, Clock clock, @Value("${app.ranking.retention-days:90}") int retentionDays) {
         if (retentionDays < 1) {
@@ -87,7 +92,16 @@ public class SincronizacaoPontuacaoService {
         if (!expiraEm.isAfter(OffsetDateTime.now(clock))) {
             return;
         }
-        rankingGateway.definirPontuacao(cycleService.montarChave(TipoRankingType.MORADORES, credito.getCondominioId(), ciclo), credito.getUsuarioId(), pontos, expiraEm);
+        String chaveRanking = cycleService.montarChave(TipoRankingType.MORADORES, credito.getCondominioId(), ciclo);
+        Long anterior = push == null ? null : rankingGateway.buscarPosicao(chaveRanking, credito.getUsuarioId());
+        rankingGateway.definirPontuacao(chaveRanking, credito.getUsuarioId(), pontos, expiraEm);
+        if (push != null && anterior != null) {
+            Long nova = rankingGateway.buscarPosicao(chaveRanking, credito.getUsuarioId());
+            if (nova != null && nova < anterior && credito.getOcorridoEm().isAfter(ciclo.getInicio())) {
+                push.criar(credito.getUsuarioId(), "ranking_subiu", "ranking:" + ciclo.getId() + ":" + credito.getId(),
+                        "Você subiu no ranking!", "Sua posição melhorou.", "ranking", "Ver ranking");
+            }
+        }
     }
 
     private void atualizarTorre(MovimentacaoPontos credito) {
