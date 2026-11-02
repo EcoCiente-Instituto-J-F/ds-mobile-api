@@ -57,6 +57,12 @@ jobs:
         run: chmod +x gradlew
 
       - name: Executar build e testes
+        env:
+          MAIL_HOST: localhost
+          MAIL_USERNAME: teste-ci
+          MAIL_PASSWORD: teste-ci
+          MAIL_FROM: teste@invalid.example
+          URL_REDEFINICAO_SENHA: https://invalid.example/reset
         run: ./gradlew clean build integrationTest --no-daemon
 
 
