@@ -20,6 +20,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate;
 
 import br.com.ecociente.mobile.core.service.notificacoes.PushService;
+import br.com.ecociente.mobile.config.notificacoes.PushAudience;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -29,6 +30,7 @@ public class JdbcPushService implements PushService {
     private final JdbcTemplate jdbc;
     private final PlatformTransactionManager transactionManager;
     private final ObjectMapper mapper;
+    private final PushAudience audience;
 
     @Value("${app.push.enabled:false}")
     private boolean enabled;
@@ -89,7 +91,7 @@ public class JdbcPushService implements PushService {
 
     @Override
     public boolean criar(int usuarioId, String tipo, String chave, String titulo, String corpo, String destino, String acao) {
-        if (!enabled || usuarioId <= 0 || tipo == null || tipo.isBlank() || chave == null
+        if (!enabled || !audience.permitir(usuarioId) || usuarioId <= 0 || tipo == null || tipo.isBlank() || chave == null
                 || chave.isBlank() || chave.length() > 240 || titulo == null || titulo.isBlank()) {
             return false;
         }
@@ -155,12 +157,12 @@ public class JdbcPushService implements PushService {
                 SELECT DISTINCT u.id_usuario FROM tb_usuarios u
                 JOIN tb_push_dispositivos d ON d.usuario_id = u.id_usuario
                 WHERE u.ativo = TRUE AND d.ativo = TRUE
-                """, Integer.class);
+                """, Integer.class).stream().filter(audience::permitir).toList();
     }
 
     @Override
     public List<Integer> buscarUsuarios(String sql, Object... parametros) {
-        return jdbc.queryForList(sql, Integer.class, parametros);
+        return jdbc.queryForList(sql, Integer.class, parametros).stream().filter(audience::permitir).toList();
     }
 
     @Override
