@@ -3,6 +3,7 @@ package br.com.ecociente.mobile.core.service.notificacoes;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,9 @@ import lombok.RequiredArgsConstructor;
 public class PushService {
 
     private final JdbcTemplate jdbc;
+
+    @Value("${app.push.enabled:false}")
+    private boolean enabled;
 
     @Transactional
     public void registrarDispositivo(int usuarioId, String instalacaoId, String token, String preferenciasJson) {
@@ -48,6 +52,7 @@ public class PushService {
 
     @Transactional
     public boolean criar(int usuarioId, String tipo, String chave, String titulo, String corpo, String destino, String acao) {
+        if (!enabled) return false;
         if (usuarioId <= 0 || tipo == null || chave == null || chave.isBlank()
                 || chave.length() > 240) {
             return false;
