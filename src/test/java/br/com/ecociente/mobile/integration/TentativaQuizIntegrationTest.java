@@ -96,6 +96,10 @@ class TentativaQuizIntegrationTest {
     private br.com.ecociente.mobile.core.service.pontuacao.SincronizacaoPontuacaoService
             sincronizacaoRedisSimulada;
 
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private br.com.ecociente.mobile.core.service.notificacoes.PushService
+            pushServiceSimulado;
+
 
   private static final String SECRET = "0123456789abcdef0123456789abcdef";
 
