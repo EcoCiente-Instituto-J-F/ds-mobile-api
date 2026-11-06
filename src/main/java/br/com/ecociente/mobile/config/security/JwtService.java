@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,7 +44,7 @@ public class JwtService implements TokenProvaiderPort {
     @Override
     public String gerarToken(Usuario usuario, PerfilUsuarioType perfil) {
         Instant agora = Instant.now();
-        return Jwts.builder().subject(usuario.getEmail()).claims(Map.of("usuarioId", usuario.getId(), "nome", usuario.getNome(), "perfil", perfil.name())).issuedAt(Date.from(agora)).expiration(Date.from(agora.plusMillis(expirationMs))).signWith(secretKey).compact();
+        return Jwts.builder().subject(usuario.getEmail()).claims(Map.of("usuarioId", usuario.getId(), "nome", usuario.getNome(), "perfil", perfil.name())).id(UUID.randomUUID().toString()).issuedAt(Date.from(agora)).expiration(Date.from(agora.plusMillis(expirationMs))).signWith(secretKey).compact();
     }
 
     @Override
