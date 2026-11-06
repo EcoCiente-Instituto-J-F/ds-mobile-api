@@ -33,9 +33,13 @@ class ConsultarCooperativasProximasServiceTest {
     @Test
     void deveListarAsCooperativasDaMesmaCidadeComPaginacao() {
         when(gateway.sindicoTemCondominioAtivo(30)).thenReturn(true);
+        when(gateway.listarCondominiosAtivos(30)).thenReturn(List.of(6));
         when(gateway.contarProximas(30)).thenReturn(25L);
         when(gateway.listarProximas(30, 10L, 10)).thenReturn(List.of(cooperativa(1), cooperativa(2)));
+
         var pagina = service.executar(30, 1, 10);
+
+        assertEquals(6, pagina.condominioId());
         assertEquals(25L, pagina.total());
         assertEquals(1, pagina.pagina());
         assertEquals(10, pagina.tamanho());
@@ -46,18 +50,36 @@ class ConsultarCooperativasProximasServiceTest {
     @Test
     void deveRetornarPaginaVaziaQuandoNaoHaCooperativaNaCidade() {
         when(gateway.sindicoTemCondominioAtivo(30)).thenReturn(true);
+        when(gateway.listarCondominiosAtivos(30)).thenReturn(List.of(6));
         when(gateway.contarProximas(30)).thenReturn(0L);
         when(gateway.listarProximas(30, 0L, 10)).thenReturn(List.of());
+
         var pagina = service.executar(30, 0, 10);
+
+        assertEquals(6, pagina.condominioId());
         assertEquals(0L, pagina.total());
         assertEquals(0L, pagina.totalPaginas());
         assertTrue(pagina.cooperativas().isEmpty());
     }
 
     @Test
+    void deveDeixarCondominioIdAusenteQuandoExistirMaisDeUmVinculo() {
+        when(gateway.sindicoTemCondominioAtivo(30)).thenReturn(true);
+        when(gateway.listarCondominiosAtivos(30)).thenReturn(List.of(6, 7));
+        when(gateway.contarProximas(30)).thenReturn(0L);
+        when(gateway.listarProximas(30, 0L, 10)).thenReturn(List.of());
+
+        var pagina = service.executar(30, 0, 10);
+
+        assertNull(pagina.condominioId());
+    }
+
+    @Test
     void naoDeveListarParaQuemNaoEhSindicoDeCondominioAtivo() {
         when(gateway.sindicoTemCondominioAtivo(40)).thenReturn(false);
+
         var erro = assertThrows(ConsultaCooperativaException.class, () -> service.executar(40, 0, 10));
+
         assertEquals(Tipo.NAO_PERMITIDO, erro.getTipo());
         assertEquals("SINDICO_SEM_CONDOMINIO", erro.getCodigo());
         verify(gateway, never()).listarProximas(anyInt(), anyLong(), anyInt());
@@ -67,6 +89,7 @@ class ConsultarCooperativasProximasServiceTest {
     @CsvSource({ "-1,10", "0,0", "0,-1", "0,101" })
     void deveRejeitarPaginacaoInvalida(int pagina, int tamanho) {
         var erro = assertThrows(ConsultaCooperativaException.class, () -> service.executar(30, pagina, tamanho));
+
         assertEquals(Tipo.DADOS_INVALIDOS, erro.getTipo());
         assertEquals("PAGINACAO_INVALIDA", erro.getCodigo());
         verifyNoInteractions(gateway);
@@ -75,6 +98,7 @@ class ConsultarCooperativasProximasServiceTest {
     @Test
     void deveRejeitarUsuarioAusente() {
         var erro = assertThrows(ConsultaCooperativaException.class, () -> service.executar(null, 0, 10));
+
         assertEquals(Tipo.NAO_PERMITIDO, erro.getTipo());
         assertEquals("USUARIO_INVALIDO", erro.getCodigo());
         verifyNoInteractions(gateway);
