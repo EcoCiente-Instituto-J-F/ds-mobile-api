@@ -1,5 +1,6 @@
 package br.com.ecociente.mobile.core.service;
 
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,14 +26,20 @@ public class ConsultarCooperativasProximasService {
         if (pagina < 0 || tamanho < 1 || tamanho > 100) {
             throw erro(Tipo.DADOS_INVALIDOS, "PAGINACAO_INVALIDA", "A página deve ser maior ou igual a zero e o tamanho entre 1 e 100");
         }
+
         if (!gateway.sindicoTemCondominioAtivo(usuarioId)) {
             throw erro(Tipo.NAO_PERMITIDO, "SINDICO_SEM_CONDOMINIO", "Apenas o síndico de um condomínio ativo pode consultar as cooperativas");
         }
+
+        List<Integer> condominiosAtivos = gateway.listarCondominiosAtivos(usuarioId);
+        Integer condominioId = condominiosAtivos.size() == 1 ? condominiosAtivos.get(0) : null;
+
         long total = gateway.contarProximas(usuarioId);
         long deslocamento = (long) pagina * tamanho;
         var cooperativas = gateway.listarProximas(usuarioId, deslocamento, tamanho);
         long totalPaginas = total / tamanho + (total % tamanho == 0 ? 0 : 1);
-        return new PaginaCooperativas(total, pagina, tamanho, totalPaginas, cooperativas);
+
+        return new PaginaCooperativas(condominioId, total, pagina, tamanho, totalPaginas, cooperativas);
     }
 
     private ConsultaCooperativaException erro(Tipo tipo, String codigo, String mensagem) {
