@@ -16,7 +16,13 @@ public class CooperativaMapper {
     }
 
     public CooperativasResponseDto toResponse(PaginaCooperativas pagina) {
-        return new CooperativasResponseDto(pagina.total(), pagina.pagina(), pagina.tamanho(), pagina.totalPaginas(), pagina.cooperativas().stream().map(this::toResponse).toList());
+        return new CooperativasResponseDto(
+                pagina.total(),
+                pagina.pagina(),
+                pagina.tamanho(),
+                pagina.totalPaginas(),
+                pagina.condominioId(),
+                pagina.cooperativas().stream().map(this::toResponse).toList());
     }
 
     static String enderecoCompleto(Cooperativa cooperativa) {
