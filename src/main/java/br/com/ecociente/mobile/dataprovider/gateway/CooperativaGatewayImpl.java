@@ -49,6 +49,19 @@ public class CooperativaGatewayImpl implements CooperativaGateway {
     }
 
     @Override
+    public List<Integer> listarCondominiosAtivos(Integer usuarioId) {
+        return jdbc.query("""
+            SELECT cond.id_condominio
+            FROM tb_sindicos s
+            JOIN tb_condominios cond
+              ON cond.sindico_id = s.id_sindico
+             AND cond.ativo = TRUE
+            WHERE s.usuario_id = ?
+            ORDER BY cond.id_condominio
+            """, (rs, rowNum) -> rs.getInt("id_condominio"), usuarioId);
+    }
+
+    @Override
     public long contarProximas(Integer usuarioId) {
         return jdbc.queryForObject("SELECT COUNT(*) " + PROXIMAS_DO_SINDICO, Long.class, usuarioId);
     }
