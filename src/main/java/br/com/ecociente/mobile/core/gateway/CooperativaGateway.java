@@ -7,6 +7,8 @@ public interface CooperativaGateway {
 
     boolean sindicoTemCondominioAtivo(Integer usuarioId);
 
+    List<Integer> listarCondominiosAtivos(Integer usuarioId);
+
     long contarProximas(Integer usuarioId);
 
     List<Cooperativa> listarProximas(Integer usuarioId, long deslocamento, int limite);
